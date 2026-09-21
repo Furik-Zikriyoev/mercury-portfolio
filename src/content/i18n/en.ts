@@ -8,6 +8,28 @@ const en = {
   },
   a11y: {
     switchLang: 'Switch language',
+    nav: 'Section navigation',
+  },
+  nav: {
+    menu: 'Menu',
+    close: 'Esc to close',
+    scrolled: 'Read',
+    timezone: 'Tashkent · UTC+5',
+    copy: 'Copy email',
+    copied: 'Copied',
+    sections: {
+      hero: 'Home',
+      sandbox: 'Sandbox',
+      manifesto: 'Approach',
+      about: 'About',
+      experience: 'Experience',
+      specs: 'Skills',
+      work: 'Work',
+      contact: 'Contact',
+    },
+  },
+  intro: {
+    skip: 'Skip',
   },
   hero: {
     firstName: 'Furuzonfar',
@@ -16,10 +38,8 @@ const en = {
     status: 'Open to opportunities',
     location: 'Tashkent',
     localTime: 'Tashkent time',
-  },
-  soon: {
-    label: 'Site in progress',
-    text: 'Full version coming soon. Meanwhile, you can reach me directly.',
+    cta: 'Get in touch',
+    scroll: 'Scroll',
   },
   contact: {
     email: 'Email',

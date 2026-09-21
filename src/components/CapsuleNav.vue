@@ -1,0 +1,507 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref } from 'vue'
+import LangSwitch from '@/components/LangSwitch.vue'
+import { useI18n } from '@/content/i18n'
+import { profile } from '@/content/profile'
+import { SECTIONS, type SectionId } from '@/content/sections'
+import { useClock } from '@/composables/useClock'
+import { useSections } from '@/composables/useSections'
+import { scrollToTarget } from '@/composables/useSmoothScroll'
+
+const { t } = useI18n()
+const { active, progress } = useSections()
+const { time } = useClock(profile.timeZone)
+
+const open = ref(false)
+const copied = ref(false)
+let closeTimer = 0
+let copiedTimer = 0
+
+const label = computed(() => t.value.nav.sections[active.value])
+const ring = computed(() => 2 * Math.PI * 9 * (1 - progress.value))
+const percent = computed(() => Math.round(progress.value * 100))
+
+function show() {
+  window.clearTimeout(closeTimer)
+  open.value = true
+}
+
+function hide(delay = 180) {
+  window.clearTimeout(closeTimer)
+  closeTimer = window.setTimeout(() => (open.value = false), delay)
+}
+
+function go(id: SectionId) {
+  hide(0)
+  scrollToTarget(`#${id}`)
+}
+
+async function copyEmail() {
+  try {
+    await navigator.clipboard.writeText(profile.email)
+    copied.value = true
+    window.clearTimeout(copiedTimer)
+    copiedTimer = window.setTimeout(() => (copied.value = false), 1800)
+  } catch {
+    window.location.href = `mailto:${profile.email}`
+  }
+}
+
+function onKey(e: KeyboardEvent) {
+  if (e.key === 'Escape') hide(0)
+}
+
+onBeforeUnmount(() => {
+  window.clearTimeout(closeTimer)
+  window.clearTimeout(copiedTimer)
+})
+</script>
+
+<template>
+  <div class="scrim" :class="{ 'is-on': open }" aria-hidden="true" />
+
+  <nav
+    class="capsule"
+    :class="{ 'is-open': open }"
+    :aria-label="t.a11y.nav"
+    data-cursor="plain"
+    data-reveal
+    style="--i: 5"
+    @mouseenter="show"
+    @mouseleave="hide()"
+    @keydown="onKey"
+  >
+    <button
+      type="button"
+      class="capsule__bar"
+      :aria-expanded="open"
+      aria-controls="capsule-panel"
+      @click="open ? hide(0) : show()"
+    >
+      <span class="capsule__orb" aria-hidden="true">
+        <svg viewBox="0 0 22 22">
+          <circle class="capsule__track" cx="11" cy="11" r="9" />
+          <circle class="capsule__progress" cx="11" cy="11" r="9" :style="{ strokeDashoffset: ring }" />
+        </svg>
+      </span>
+      <span class="capsule__label">
+        <Transition name="swap" mode="out-in">
+          <span :key="label">{{ label }}</span>
+        </Transition>
+      </span>
+      <span class="capsule__hint mono">{{ open ? t.nav.close : t.nav.menu }}</span>
+    </button>
+
+    <div id="capsule-panel" class="capsule__panel">
+      <div class="capsule__clip">
+        <div class="capsule__body">
+          <ul class="links">
+            <li v-for="(s, i) in SECTIONS" :key="s.id" :style="{ '--d': i }">
+              <a
+                :href="`#${s.id}`"
+                class="link"
+                :class="{ 'is-active': active === s.id }"
+                @click.prevent="go(s.id)"
+              >
+                <span class="link__num mono">{{ String(i).padStart(2, '0') }}</span>
+                <span class="link__name">{{ t.nav.sections[s.id] }}</span>
+                <span class="link__arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          </ul>
+
+          <aside class="card" :style="{ '--d': 8 }">
+            <p class="card__status">
+              <span class="card__pulse" />
+              {{ t.hero.status }}
+            </p>
+            <p class="card__time">{{ time }}</p>
+            <p class="card__tz mono">{{ t.nav.timezone }}</p>
+
+            <button type="button" class="card__email" @click="copyEmail">
+              <span class="card__email-address">{{ profile.email }}</span>
+              <span class="card__email-action mono">{{ copied ? t.nav.copied : t.nav.copy }}</span>
+            </button>
+
+            <ul class="card__socials">
+              <li v-for="s in profile.socials" :key="s.id">
+                <a :href="s.href" target="_blank" rel="noopener noreferrer">{{ s.label }} ↗</a>
+              </li>
+            </ul>
+          </aside>
+        </div>
+
+        <footer class="capsule__footer">
+          <LangSwitch />
+          <span class="mono capsule__read">{{ t.nav.scrolled }} · {{ percent }}%</span>
+        </footer>
+      </div>
+    </div>
+  </nav>
+</template>
+
+<style scoped>
+/* затемнение страницы за открытым меню */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  background: rgb(0 0 0 / 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease-out);
+}
+
+.scrim.is-on {
+  opacity: 1;
+}
+
+.capsule {
+  /* капсула всегда тёмная, независимо от фона секции */
+  --text: #ededee;
+  --text-muted: #8e8e98;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.16);
+  --w: 230px;
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  z-index: 50;
+  width: var(--w);
+  translate: -50% 0;
+  border-radius: 26px;
+  background: rgb(8 8 9 / 0.86);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 24px 60px -24px rgb(0 0 0 / 0.7);
+  color: #ededee;
+  transition:
+    width 0.6s var(--ease-spring),
+    border-radius 0.6s var(--ease-out);
+}
+
+.capsule.is-open {
+  --w: min(760px, calc(100vw - 24px));
+  border-radius: 30px;
+}
+
+/* ---------- полоса ---------- */
+.capsule__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  height: 46px;
+  padding: 0 1rem 0 0.55rem;
+}
+
+.capsule__orb {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, #fff 0 8%, transparent 26%),
+    radial-gradient(circle at 50% 55%, #cfcfd6 0%, #7c7c85 40%, #1b1b1f 68%, #6b6b72 100%);
+}
+
+.capsule__orb svg {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  transform: rotate(-90deg);
+}
+
+.capsule__track,
+.capsule__progress {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.capsule__track {
+  stroke: rgb(255 255 255 / 0.1);
+}
+
+.capsule__progress {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  stroke-dasharray: 56.55;
+  transition: stroke-dashoffset 0.2s linear;
+}
+
+.capsule__label {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+
+.capsule__label > span {
+  display: inline-block;
+}
+
+.capsule__hint {
+  color: rgb(255 255 255 / 0.45);
+  white-space: nowrap;
+}
+
+/* ---------- раскрытие ---------- */
+.capsule__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.6s var(--ease-out);
+}
+
+.is-open .capsule__panel {
+  grid-template-rows: 1fr;
+}
+
+.capsule__clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.capsule__body {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.links li,
+.card {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.3s,
+    transform 0.5s var(--ease-out);
+}
+
+.is-open .links li,
+.is-open .card {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--d) * 35ms + 150ms);
+}
+
+/* ---------- разделы ---------- */
+.links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+}
+
+.link {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+  transition: background-color 0.3s;
+}
+
+.link__num {
+  color: rgb(255 255 255 / 0.32);
+  transition: color 0.3s;
+}
+
+.link__name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgb(255 255 255 / 0.78);
+  transition:
+    color 0.3s,
+    transform 0.45s var(--ease-out);
+}
+
+.link__arrow {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.85rem;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 0.3s,
+    transform 0.45s var(--ease-out);
+}
+
+.link:hover {
+  background: rgb(255 255 255 / 0.05);
+}
+
+.link:hover .link__name {
+  color: #fff;
+  transform: translateX(4px);
+}
+
+.link:hover .link__arrow {
+  opacity: 1;
+  transform: none;
+}
+
+.link.is-active .link__num {
+  color: var(--accent);
+}
+
+.link.is-active .link__name {
+  color: #fff;
+}
+
+.link.is-active::before {
+  content: '';
+  position: absolute;
+  top: 0.95rem;
+  right: 0.95rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+
+/* ---------- карточка ---------- */
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(255 106 43 / 0.16), transparent 55%),
+    rgb(255 255 255 / 0.03);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+}
+
+.card__status {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.card__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+
+.card__time {
+  margin-top: 1.1rem;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.card__tz {
+  margin-top: 0.4rem;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.card__email {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  margin-top: auto;
+  padding: 0.75rem 0.85rem;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.05);
+  text-align: left;
+  transition: background-color 0.3s;
+}
+
+.card__email:hover {
+  background: rgb(255 255 255 / 0.09);
+}
+
+.card__email-address {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.card__email-action {
+  color: var(--accent);
+}
+
+.card__socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-top: 0.85rem;
+  font-size: var(--fs-sm);
+  color: rgb(255 255 255 / 0.65);
+}
+
+.card__socials a:hover {
+  color: #fff;
+}
+
+/* ---------- низ ---------- */
+.capsule__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1.1rem 0.9rem;
+  border-top: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.capsule__read {
+  color: rgb(255 255 255 / 0.4);
+}
+
+.swap-enter-active,
+.swap-leave-active {
+  transition:
+    opacity 0.25s,
+    transform 0.35s var(--ease-out);
+}
+
+.swap-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.swap-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+@media (max-width: 720px) {
+  .capsule__body {
+    grid-template-columns: 1fr;
+  }
+
+  .card__time {
+    font-size: 1.6rem;
+  }
+
+  .card__email {
+    margin-top: 1rem;
+  }
+}
+</style>

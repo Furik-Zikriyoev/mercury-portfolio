@@ -7,6 +7,28 @@ const ru = {
   },
   a11y: {
     switchLang: 'Сменить язык',
+    nav: 'Навигация по разделам',
+  },
+  nav: {
+    menu: 'Меню',
+    close: 'Esc — закрыть',
+    scrolled: 'Прочитано',
+    timezone: 'Ташкент · UTC+5',
+    copy: 'Скопировать почту',
+    copied: 'Скопировано',
+    sections: {
+      hero: 'Главная',
+      sandbox: 'Песочница',
+      manifesto: 'Подход',
+      about: 'Обо мне',
+      experience: 'Опыт',
+      specs: 'Навыки',
+      work: 'Работы',
+      contact: 'Контакт',
+    },
+  },
+  intro: {
+    skip: 'Пропустить',
   },
   hero: {
     firstName: 'Фурузонфар',
@@ -15,10 +37,8 @@ const ru = {
     status: 'Открыт к предложениям',
     location: 'Ташкент',
     localTime: 'Сейчас в Ташкенте',
-  },
-  soon: {
-    label: 'Сайт в разработке',
-    text: 'Полная версия скоро. Пока можно написать мне напрямую.',
+    cta: 'Связаться',
+    scroll: 'Листайте',
   },
   contact: {
     email: 'Почта',

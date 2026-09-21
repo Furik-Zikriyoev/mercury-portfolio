@@ -118,3 +118,109 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- Lenis ---------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+html.is-locked {
+  overflow: hidden;
+}
+
+/* ---------- Светлые секции ---------- */
+section[data-surface='light'] {
+  --text: var(--light-text);
+  --text-muted: var(--light-muted);
+  --text-faint: #b4b4ba;
+  --line: rgb(14 14 16 / 0.09);
+  --line-strong: rgb(14 14 16 / 0.18);
+  color: var(--text);
+}
+
+/* ---------- Появление интерфейса после интро ---------- */
+[data-reveal] {
+  transition:
+    opacity 0.9s var(--ease-out),
+    transform 0.9s var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 90ms + 80ms);
+}
+
+.is-intro [data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: none;
+}
+
+/* ---------- Курсор-капля: системный курсор прячем только для мыши ---------- */
+@media (pointer: fine) {
+  html.has-cursor,
+  html.has-cursor * {
+    cursor: none !important;
+  }
+}
+
+/* ---------- Кнопка ---------- */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  isolation: isolate;
+  transition: color var(--dur-med) var(--ease-out);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  border-radius: inherit;
+  transform: translateY(101%);
+  transition: transform var(--dur-med) var(--ease-out);
+}
+
+.btn:hover::before {
+  transform: none;
+}
+
+.btn:hover {
+  color: var(--accent-contrast);
+}
+
+.is-intro .mercury-text:not(.is-liquid) {
+  opacity: 0;
+}
+
+/* ---------- Номер секции ---------- */
+.section-index {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+@media (min-width: 1024px) {
+  .section-index {
+    font-size: 1.0625rem;
+  }
+}

@@ -17,14 +17,14 @@ const liquid = ref(false)
 const { engine } = useMercury()
 let formed = false
 
-async function form(): Promise<void> {
+async function form(opts: { from?: 'home' | 'scatter'; duration?: number } = {}): Promise<void> {
   const m = engine.value
   if (!m || !el.value) return
   if (formed) await m.releaseText('collect')
   await nextTick()
   liquid.value = true
   formed = true
-  await m.formText(el.value)
+  await m.formText(el.value, opts)
 }
 
 async function release(mode: 'scatter' | 'collect' = 'scatter'): Promise<void> {

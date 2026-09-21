@@ -173,7 +173,15 @@ export class Mercury {
     slots: 16,
   }
 
-  private pointer = { x: -9999, y: -9999, active: false, radius: 0 }
+  private pointer = {
+    x: -9999,
+    y: -9999,
+    active: false,
+    radius: 0,
+    hoverRadius: 0,
+    magnet: null as HTMLElement | null,
+    strength: 0.35,
+  }
 
   private resizeTimer = 0
 
@@ -293,7 +301,10 @@ export class Mercury {
   // ---------------------------------------------------------------- текст
 
   /** Капли слетаются в буквы элемента, затем буквы становятся сплошным металлом */
-  async formText(el: HTMLElement, opts: { duration?: number } = {}): Promise<void> {
+  async formText(
+    el: HTMLElement,
+    opts: { duration?: number; from?: 'home' | 'scatter' } = {},
+  ): Promise<void> {
     await document.fonts?.ready
     const field = buildTextField(el, QUALITY[this.quality].textScale)
     if (!field) return
@@ -311,11 +322,24 @@ export class Mercury {
       return
     }
 
-    const sources = this.drops.filter((d) => d.role === 'idle')
+    const scatter = opts.from === 'scatter'
+    const sources = scatter ? [] : this.drops.filter((d) => d.role === 'idle')
     const origin = this.homePoint()
     this.text.slots.forEach((_, i) => {
       const src = sources[i]
-      const drop = src ?? this.addDrop(origin.x + rand(-40, 40), origin.y + rand(-40, 40), 0)
+      let drop: Drop | null
+      if (src) {
+        drop = src
+      } else if (scatter) {
+        // капли вылетают снизу экрана по дуге
+        drop = this.addDrop(rand(0, this.width), this.height + rand(20, 180), field.halfStroke * rand(0.8, 1.6))
+        if (drop) {
+          drop.vx = rand(-300, 300)
+          drop.vy = -rand(500, 1300)
+        }
+      } else {
+        drop = this.addDrop(origin.x + rand(-40, 40), origin.y + rand(-40, 40), 0)
+      }
       if (!drop) return
       drop.role = 'text'
       drop.slot = i
@@ -333,6 +357,18 @@ export class Mercury {
     for (const d of this.drops) if (d.role === 'text') d.tr = 0
     await fill
     this.fillHome()
+  }
+
+  /** Мгновенно завершить сборку текста (кнопка «Пропустить») */
+  completeText(): void {
+    if (!this.text.el) return
+    this.tweens.to('text', this.text.amount, 1, 0, (v) => (this.text.amount = v))
+    this.tweens.to('text-absorb', 0, 1, 0, () => {})
+    for (const d of this.drops) {
+      if (d.role !== 'text') continue
+      d.tr = 0
+      d.r = 0
+    }
   }
 
   /** Металл букв распадается на капли: scatter — разлетаются, collect — стекают домой */
@@ -420,9 +456,10 @@ export class Mercury {
 
   // ---------------------------------------------------------------- взаимодействие
 
-  /** Капля под курсором. radius = 0 — выключена */
-  setPointerRadius(radius: number): void {
+  /** Капля под курсором. radius = 0 — выключена, hoverRadius — над элементом-магнитом */
+  setPointerRadius(radius: number, hoverRadius = radius): void {
     this.pointer.radius = radius
+    this.pointer.hoverRadius = hoverRadius
     if (radius > 0 && !this.drops.some((d) => d.role === 'pointer')) {
       const drop = this.addDrop(this.pointer.x, this.pointer.y, 0)
       if (drop) {
@@ -448,6 +485,12 @@ export class Mercury {
     this.pointer.x = x
     this.pointer.y = y
     this.pointer.active = true
+  }
+
+  /** Капля притягивается к центру элемента (кнопка, ссылка) */
+  setPointerMagnet(el: HTMLElement | null, strength = 0.35): void {
+    this.pointer.magnet = el
+    this.pointer.strength = strength
   }
 
   releasePointer(): void {
@@ -662,11 +705,14 @@ export class Mercury {
       }
     }
 
+    const { magnet } = this.pointer
+    const center = magnet?.isConnected ? resolveTarget(magnet) : null
     for (const d of this.drops) {
       if (d.role !== 'pointer') continue
-      d.tx = this.pointer.x
-      d.ty = this.pointer.y
-      d.tr = this.pointer.active ? this.pointer.radius : 0
+      const k = center ? this.pointer.strength : 0
+      d.tx = this.pointer.x + ((center?.x ?? 0) - this.pointer.x) * k
+      d.ty = this.pointer.y + ((center?.y ?? 0) - this.pointer.y) * k
+      d.tr = this.pointer.active ? (center ? this.pointer.hoverRadius : this.pointer.radius) : 0
     }
   }
 
