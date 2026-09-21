@@ -1,7 +1,4 @@
-/**
- * Контакты и ссылки — не зависят от языка.
- * Чтобы скрыть ссылку, оставьте href пустой строкой.
- */
+// Контакты. Пустой href — ссылка не показывается.
 export interface SocialLink {
   id: 'telegram' | 'github' | 'linkedin' | 'instagram' | 'hh'
   label: string
@@ -17,7 +14,7 @@ const socials: SocialLink[] = [
 export const profile = {
   email: 'zff2304@mail.ru',
   timeZone: 'Asia/Tashkent',
-  /** PDF резюме: положите файл в /public и укажите '/resume.pdf' */
+  /** например '/resume.pdf' из папки public */
   resumeUrl: '',
   socials: socials.filter((s) => s.href !== ''),
 }

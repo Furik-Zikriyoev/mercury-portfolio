@@ -81,7 +81,7 @@ const { time } = useClock(profile.timeZone)
   padding-block: 4rem;
 }
 
-/* Временная статичная «капля» — на этапе 2 её заменит WebGL-ртуть */
+/* TODO: заменить на WebGL */
 .drop {
   position: absolute;
   z-index: -1;

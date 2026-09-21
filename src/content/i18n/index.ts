@@ -5,7 +5,7 @@ import en from './en'
 export type Locale = 'ru' | 'en'
 export const LOCALES: readonly Locale[] = ['ru', 'en']
 
-/** Строка на двух языках — для данных вне ru.ts/en.ts (например, работ в портфолио) */
+/** Строка на двух языках — для данных вне ru.ts/en.ts */
 export type Localized<T = string> = Record<Locale, T>
 
 const messages: Record<Locale, Messages> = { ru, en }
@@ -20,14 +20,14 @@ function detectLocale(): Locale {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (isLocale(saved)) return saved
   } catch {
-    /* localStorage недоступен (приватный режим) */
+    /* localStorage может быть недоступен */
   }
   return navigator.language.toLowerCase().startsWith('en') ? 'en' : 'ru'
 }
 
 const locale = ref<Locale>(detectLocale())
 
-// Синхронизируем <html lang>, заголовок, description и сохранённый выбор
+// lang, title, description и выбор пользователя
 watchEffect(() => {
   const m = messages[locale.value]
   document.documentElement.lang = locale.value
@@ -40,10 +40,7 @@ watchEffect(() => {
   }
 })
 
-/**
- * Типобезопасный i18n без библиотек: `t.value.hero.role`.
- * Опечатка в ключе или непереведённая строка — ошибка компиляции.
- */
+/** t.value.hero.role — опечатка в ключе даст ошибку компиляции */
 export function useI18n() {
   const t = computed(() => messages[locale.value])
   const setLocale = (next: Locale) => (locale.value = next)

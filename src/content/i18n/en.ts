@@ -19,7 +19,7 @@ const en = {
   },
   soon: {
     label: 'Site in progress',
-    text: 'The new portfolio is being cast in liquid metal. Meanwhile, feel free to reach out directly.',
+    text: 'Full version coming soon. Meanwhile, you can reach me directly.',
   },
   contact: {
     email: 'Email',

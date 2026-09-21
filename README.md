@@ -1,44 +1,37 @@
-# Mercury — портфолио Фурузонфара Зикриёева
+# mercury-portfolio
 
-Frontend-разработчик и UI-дизайнер, Ташкент.
-Сайт-презентация в духе Apple, где главный герой — живая капля ртути, отрисованная на WebGL.
+Моё портфолио. Frontend-разработчик и UI-дизайнер, Ташкент.
 
-> Статус: **в разработке** (этап 1 из 8 — каркас).
+**Сайт:** https://mercury-portfolio-ten.vercel.app
+
+Пока в разработке.
 
 ## Стек
 
-- **Vue 3** + **TypeScript** (strict) + **Vite**
-- Свой WebGL2-движок жидкого металла (без three.js) — этап 2
-- GSAP ScrollTrigger + Lenis — скролл-анимации
-- Типизированный i18n RU/EN без библиотек
-- ESLint + Prettier, деплой на **Vercel**
+- Vue 3, TypeScript, Vite
+- WebGL2 — эффект жидкого металла на своём шейдере, без three.js (в работе)
+- Локализация RU/EN на TypeScript, без библиотек
+- ESLint, Prettier
+- Vercel
 
 ## Запуск
 
 ```bash
 npm install
-npm run dev        # локально: http://localhost:5173
-npm run build      # проверка типов + продакшн-сборка
-npm run preview    # просмотр собранной версии
+npm run dev        # http://localhost:5173
+npm run build      # проверка типов и сборка
+npm run preview    # просмотр сборки
 ```
 
-Требуется Node.js 20.19+.
+Нужен Node.js 20.19+.
 
 ## Структура
 
 ```
 src/
-├── content/       # весь контент: тексты RU/EN, контакты, (позже) навыки, опыт, работы
-│   └── i18n/      # ru.ts — эталон, en.ts обязан совпадать по форме
-├── components/    # UI-компоненты
-├── composables/   # переиспользуемая логика (часы, скролл, ...)
-├── styles/        # дизайн-токены и базовые стили
-└── engine/        # WebGL-движок ртути (этап 2)
+├── content/       # тексты RU/EN и контакты
+│   └── i18n/      # ru.ts — основная локаль, en.ts должен совпадать по структуре
+├── components/
+├── composables/
+└── styles/        # дизайн-токены и базовые стили
 ```
-
-## Как менять контент
-
-| Что | Где |
-| --- | --- |
-| Тексты | `src/content/i18n/ru.ts` и `en.ts` |
-| Контакты, резюме | `src/content/profile.ts` |
