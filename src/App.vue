@@ -1,22 +1,46 @@
 <script setup lang="ts">
+import { defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import LangSwitch from '@/components/LangSwitch.vue'
+import MercuryCanvas from '@/components/MercuryCanvas.vue'
+import MercuryText from '@/components/MercuryText.vue'
 import { useI18n } from '@/content/i18n'
 import { profile } from '@/content/profile'
 import { useClock } from '@/composables/useClock'
+import { useMercury } from '@/composables/useMercury'
+
+const EngineLab = defineAsyncComponent(() => import('@/lab/EngineLab.vue'))
+const isLab = new URLSearchParams(window.location.search).has('lab')
 
 const { t } = useI18n()
 const { time } = useClock(profile.timeZone)
+const { engine } = useMercury()
+
+const home = ref<HTMLElement | null>(null)
+
+function placeDrop() {
+  const m = engine.value
+  if (!m || !home.value || isLab) return
+  const size = Math.min(90, Math.max(44, window.innerWidth * 0.055))
+  m.setHome(home.value, { size, count: 6 })
+  m.setPointerRadius(window.matchMedia('(pointer: fine)').matches ? 20 : 0)
+}
+
+watch(engine, placeDrop)
+onMounted(placeDrop)
 </script>
 
 <template>
-  <div class="page">
+  <MercuryCanvas />
+  <EngineLab v-if="isLab" />
+
+  <div v-else class="page">
     <header class="top container">
       <span class="logo mono">Mercury</span>
       <LangSwitch />
     </header>
 
     <main class="hero container">
-      <div class="drop" aria-hidden="true" />
+      <div ref="home" class="drop-home" aria-hidden="true" />
 
       <p class="eyebrow mono">
         <span class="dot" />
@@ -24,7 +48,7 @@ const { time } = useClock(profile.timeZone)
       </p>
 
       <h1 class="name">
-        <span class="chrome-text">{{ t.hero.firstName }}</span>
+        <MercuryText class="chrome-text" :text="t.hero.firstName" />
         <span class="name__last">{{ t.hero.lastName }}</span>
       </h1>
 
@@ -81,29 +105,13 @@ const { time } = useClock(profile.timeZone)
   padding-block: 4rem;
 }
 
-/* TODO: заменить на WebGL */
-.drop {
+/* точка, вокруг которой живёт капля */
+.drop-home {
   position: absolute;
-  z-index: -1;
-  right: max(var(--gutter), 6vw);
-  top: 50%;
-  width: clamp(180px, 30vw, 420px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 36% 30%, #fff 0 6%, transparent 22%),
-    radial-gradient(circle at 50% 50%, #cfcfd6 0%, #8d8d96 38%, #1b1b1f 64%, #54545c 82%, #9a9aa2 100%);
-  box-shadow:
-    0 40px 120px -20px rgb(255 106 43 / 0.25),
-    inset 0 -20px 60px rgb(0 0 0 / 0.5);
-  transform: translateY(-50%);
-  animation: float 8s var(--ease-in-out) infinite alternate;
-}
-
-@keyframes float {
-  to {
-    transform: translateY(-46%) scale(1.03, 0.97);
-  }
+  top: 26%;
+  right: calc(var(--gutter) + 8vw);
+  width: 1px;
+  height: 1px;
 }
 
 .eyebrow {
@@ -137,6 +145,7 @@ const { time } = useClock(profile.timeZone)
   font-weight: 700;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
 .name__last {
@@ -199,10 +208,9 @@ const { time } = useClock(profile.timeZone)
 }
 
 @media (max-width: 700px) {
-  .drop {
-    top: 18%;
-    right: -12vw;
-    opacity: 0.6;
+  .drop-home {
+    top: 14%;
+    right: 18%;
   }
 }
 </style>
