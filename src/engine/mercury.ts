@@ -164,6 +164,10 @@ export class Mercury {
   private accent: [number, number, number]
   private light = { x: 0, y: 0 }
   private gravity = { x: 0, y: 1600 }
+  private melting = false
+
+  /** Вызывается, когда две капли песочницы сливаются (для звука). r — радиус новой капли */
+  onMerge: ((r: number) => void) | null = null
 
   private home: Target | null = null
   private homeSize = 80
@@ -564,6 +568,67 @@ export class Mercury {
       d.vx += rand(-force, force)
       d.vy += rand(-force, force * 0.4) - force * 0.3
     }
+  }
+
+  /**
+   * Весь металл страницы (капля, текст, рамка) осыпается вниз экрана,
+   * лежит лужей и через `seconds` собирается обратно. Пасхалка: набрать Z F F на странице.
+   */
+  async melt(seconds = 2.4): Promise<void> {
+    if (this.melting || this.reduced) return
+    this.melting = true
+
+    const textEl = this.text.el
+    const field = this.text.field
+    const frameEl = this.frame.el
+    const thickness = this.frame.thickness
+    const fall = (d: Drop | null, spread = 250) => {
+      if (!d) return
+      d.role = 'free'
+      d.vx = rand(-spread, spread)
+      d.vy = rand(-300, 100)
+      d.life = seconds + rand(0, 0.5)
+    }
+
+    if (textEl && field) {
+      const rect = textEl.getBoundingClientRect()
+      for (const p of shuffle(field.samples).slice(0, 22)) {
+        fall(this.addDrop(rect.left - field.pad + p.x, rect.top - field.pad + p.y, field.halfStroke * 1.3))
+      }
+      this.tweens.to('text', this.text.amount, 0, 0.25, (v) => (this.text.amount = v))
+      this.text.el = null
+      this.text.field = null
+      this.text.slots = []
+    }
+
+    if (frameEl) {
+      const rect = frameEl.getBoundingClientRect()
+      for (let i = 0; i < 12; i++) {
+        const p = perimeterPoint(rect, i / 12)
+        fall(this.addDrop(p.x, p.y, thickness * 1.4))
+      }
+      this.tweens.to('frame', this.frame.amount, 0, 0.25, (v) => (this.frame.amount = v))
+      this.frame.el = null
+    }
+
+    for (const d of this.drops) if (d.role === 'idle') fall(d, 120)
+
+    // капли лежат внизу, потом становятся обычными и текут домой
+    await this.tweens.to('melt', 0, 1, 0, () => {}, { delay: seconds + 0.6 })
+    for (const d of this.drops) if (d.role === 'free') d.life = Math.min(d.life, 0.01)
+    await this.tweens.to('melt', 0, 1, 0, () => {}, { delay: 0.1 })
+
+    const back: Promise<void>[] = []
+    // если за это время металл уже забрал другой текст или рамку — не мешаем
+    const onScreen = (el: HTMLElement) => {
+      const r = el.getBoundingClientRect()
+      return el.isConnected && r.bottom > 0 && r.top < this.height
+    }
+    if (textEl && onScreen(textEl) && !this.text.el) back.push(this.formText(textEl, { from: 'home', duration: 1.6 }))
+    if (frameEl && onScreen(frameEl) && !this.frame.el) back.push(this.setFrame(frameEl, { thickness, duration: 1.4 }))
+    await Promise.all(back)
+    this.fillHome()
+    this.melting = false
   }
 
   // ---------------------------------------------------------------- песочница
@@ -992,6 +1057,7 @@ export class Mercury {
         a.r = Math.max(a.r, tr * 0.9)
         b.tr = 0
         b.r = 0
+        this.onMerge?.(tr)
       }
     }
   }

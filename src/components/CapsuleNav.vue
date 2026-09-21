@@ -1,18 +1,27 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { Terminal, Volume2, VolumeX } from 'lucide-vue-next'
 import LangSwitch from '@/components/LangSwitch.vue'
 import { useI18n } from '@/content/i18n'
 import { profile } from '@/content/profile'
 import { SECTIONS, type SectionId } from '@/content/sections'
 import { useClock } from '@/composables/useClock'
 import { useSections } from '@/composables/useSections'
+import { useMercury } from '@/composables/useMercury'
 import { scrollToTarget } from '@/composables/useSmoothScroll'
+import { play, useSound } from '@/composables/useSound'
+import { useTerminal } from '@/composables/useTerminal'
 
 const { t } = useI18n()
 const { active, progress } = useSections()
 const { time } = useClock(profile.timeZone)
 
+const { engine } = useMercury()
+const { enabled: sound, supported: soundSupported, setSound } = useSound()
+const terminal = useTerminal()
+
 const open = ref(false)
+const orb = ref<HTMLElement | null>(null)
 const copied = ref(false)
 let closeTimer = 0
 let copiedTimer = 0
@@ -31,6 +40,24 @@ function hide(delay = 180) {
   closeTimer = window.setTimeout(() => (open.value = false), delay)
 }
 
+/** Тройной клик по капле в капсуле — брызги */
+function onBarClick(e: MouseEvent) {
+  if (e.detail === 3 && orb.value) {
+    const r = orb.value.getBoundingClientRect()
+    engine.value?.splash(r.left + r.width / 2, r.top + r.height / 2, 12)
+    play('drop')
+    return
+  }
+  if (e.detail > 1) return
+  if (open.value) hide(0)
+  else show()
+}
+
+function openTerminal() {
+  hide(0)
+  terminal.toggle(true)
+}
+
 function go(id: SectionId) {
   hide(0)
   scrollToTarget(`#${id}`)
@@ -40,6 +67,7 @@ async function copyPhone() {
   try {
     await navigator.clipboard.writeText(profile.phone)
     copied.value = true
+    play('copy')
     window.clearTimeout(copiedTimer)
     copiedTimer = window.setTimeout(() => (copied.value = false), 1800)
   } catch {
@@ -52,7 +80,10 @@ function onKey(e: KeyboardEvent) {
 }
 
 // пока меню открыто, холст с металлом уходит под затемнение и не перекрывает панель
-watch(open, (value) => document.documentElement.classList.toggle('menu-open', value))
+watch(open, (value) => {
+  document.documentElement.classList.toggle('menu-open', value)
+  play(value ? 'open' : 'close')
+})
 
 onMounted(() => window.addEventListener('keydown', onKey))
 
@@ -82,9 +113,9 @@ onBeforeUnmount(() => {
       class="capsule__bar"
       :aria-expanded="open"
       aria-controls="capsule-panel"
-      @click="open ? hide(0) : show()"
+      @click="onBarClick"
     >
-      <span class="capsule__orb" aria-hidden="true">
+      <span ref="orb" class="capsule__orb" aria-hidden="true">
         <svg viewBox="0 0 22 22">
           <circle class="capsule__track" cx="11" cy="11" r="9" />
           <circle class="capsule__progress" cx="11" cy="11" r="9" :style="{ strokeDashoffset: ring }" />
@@ -140,7 +171,32 @@ onBeforeUnmount(() => {
         </div>
 
         <footer class="capsule__footer">
-          <LangSwitch />
+          <div class="tools">
+            <LangSwitch />
+            <button
+              v-if="soundSupported"
+              type="button"
+              class="tool"
+              :class="{ 'is-on': sound }"
+              :aria-label="sound ? t.nav.soundOff : t.nav.soundOn"
+              :title="sound ? t.nav.soundOff : t.nav.soundOn"
+              :aria-pressed="sound"
+              @click="setSound(!sound)"
+            >
+              <component :is="sound ? Volume2 : VolumeX" :size="16" :stroke-width="1.8" aria-hidden="true" />
+            </button>
+            <button
+              v-if="terminal.supported"
+              type="button"
+              class="tool tool--wide"
+              :title="t.nav.terminal"
+              @click="openTerminal"
+            >
+              <Terminal :size="16" :stroke-width="1.8" aria-hidden="true" />
+              <span class="mono">{{ t.nav.terminal }}</span>
+              <kbd class="mono">~</kbd>
+            </button>
+          </div>
           <span class="mono capsule__read">{{ t.nav.scrolled }} · {{ percent }}%</span>
         </footer>
       </div>
@@ -476,6 +532,52 @@ onBeforeUnmount(() => {
 
 .capsule__read {
   color: rgb(255 255 255 / 0.4);
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 40px;
+  min-width: 40px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.03);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  transition:
+    color var(--dur-fast),
+    border-color var(--dur-fast);
+}
+
+.tool:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.tool.is-on {
+  color: var(--accent);
+}
+
+.tool kbd {
+  padding: 0.05rem 0.4rem;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.08);
+  font-size: 0.6875rem;
+}
+
+@media (max-width: 560px) {
+  .tool--wide span {
+    display: none;
+  }
 }
 
 .swap-enter-active,

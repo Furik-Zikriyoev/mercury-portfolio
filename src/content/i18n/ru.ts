@@ -8,6 +8,7 @@ const ru = {
   a11y: {
     switchLang: 'Сменить язык',
     nav: 'Навигация по разделам',
+    close: 'Закрыть',
   },
   nav: {
     menu: 'Меню',
@@ -15,6 +16,9 @@ const ru = {
     timezone: 'Ташкент · UTC+5',
     copy: 'Скопировать номер',
     copied: 'Скопировано',
+    terminal: 'Терминал',
+    soundOn: 'Включить звук',
+    soundOff: 'Выключить звук',
     sections: {
       hero: 'Главная',
       sandbox: 'Песочница',
@@ -177,6 +181,71 @@ const ru = {
     more: 'Остальные работы появятся здесь позже.',
     screenAlt: 'Скриншот Mercury DotAi:',
   },
+
+  terminal: {
+    title: 'Терминал',
+    hint: 'help — команды · Tab — дополнить · Esc — закрыть',
+    welcome: 'Это терминал сайта. Наберите help, чтобы увидеть команды.',
+    notFound: 'команда не найдена: {cmd}',
+    didYouMean: 'Может быть, {cmd}?',
+    help: [
+      { cmd: 'about', desc: 'коротко обо мне' },
+      { cmd: 'skills', desc: 'стек и инструменты' },
+      { cmd: 'work', desc: 'главный проект и переход к нему' },
+      { cmd: 'contact', desc: 'телефон, почта, соцсети' },
+      { cmd: 'goto <раздел>', desc: 'перейти к разделу страницы' },
+      { cmd: 'copy phone | email', desc: 'скопировать номер или почту' },
+      { cmd: 'lang ru | en', desc: 'сменить язык сайта' },
+      { cmd: 'mercury shake | splash | stats', desc: 'управлять металлом' },
+      { cmd: 'sound on | off', desc: 'звуки интерфейса' },
+      { cmd: 'ls, date, whoami, clear, exit', desc: '' },
+    ],
+    about: [
+      'Фурузонфар Зикриёев, frontend-разработчик и UI-дизайнер.',
+      'Окончил КНИТУ (Казань) по направлению «Информационные системы и технологии».',
+      'Пишу на Vue и TypeScript, больше пяти лет занимаюсь дизайном.',
+      'Живу в Ташкенте, открыт к предложениям.',
+    ],
+    work: 'Mercury DotAi — аналитика игроков Dota 2 с разбором игры через ИИ. Демо скоро.',
+    goto: {
+      usage: 'goto <раздел>. Разделы: {list}',
+      done: 'Перехожу: {name}',
+    },
+    lang: {
+      usage: 'lang ru | en',
+      done: 'Язык: русский',
+    },
+    copy: {
+      usage: 'copy phone | email',
+      done: 'Скопировано: {value}',
+      fail: 'Не получилось скопировать. Браузер не дал доступ к буферу обмена.',
+    },
+    mercury: {
+      usage: 'mercury shake | splash | stats',
+      off: 'Металл недоступен: браузер не поддерживает WebGL2.',
+      shake: 'Встряхнул.',
+      splash: 'Брызги из центра экрана.',
+      stats: 'FPS {fps} · капель {drops} · качество {quality} · pixel ratio {pr}',
+    },
+    sound: {
+      usage: 'sound on | off',
+      on: 'Звук включён.',
+      off: 'Звук выключен.',
+      unsupported: 'Звук есть только на компьютере.',
+    },
+    whoami: 'guest',
+    date: 'В Ташкенте сейчас {time}',
+    sudoHire: ['Пароль не нужен.', 'Прокручиваю к контактам.'],
+    sudoDenied: 'guest is not in the sudoers file. This incident will be reported.',
+    rm: 'Не сегодня.',
+    hello: 'Привет. Наберите help.',
+  },
+  console: [
+    'Привет. Раз вы открыли консоль — вот как устроен сайт.',
+    'Vue 3 + TypeScript + Vite. Жидкий металл — свой WebGL2-шейдер, без three.js: метаболы, поле текста, физика капель.',
+    'Нажмите ~ на странице — откроется терминал. Есть и другие секреты.',
+    'GitHub: https://github.com/Furik-Zikriyoev',
+  ],
 
   contact: {
     email: 'Почта',

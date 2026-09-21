@@ -9,6 +9,7 @@ const en = {
   a11y: {
     switchLang: 'Switch language',
     nav: 'Section navigation',
+    close: 'Close',
   },
   nav: {
     menu: 'Menu',
@@ -16,6 +17,9 @@ const en = {
     timezone: 'Tashkent · UTC+5',
     copy: 'Copy number',
     copied: 'Copied',
+    terminal: 'Terminal',
+    soundOn: 'Turn sound on',
+    soundOff: 'Turn sound off',
     sections: {
       hero: 'Home',
       sandbox: 'Sandbox',
@@ -178,6 +182,71 @@ const en = {
     more: 'More work will be added here later.',
     screenAlt: 'Mercury DotAi screenshot:',
   },
+
+  terminal: {
+    title: 'Terminal',
+    hint: 'help — commands · Tab — complete · Esc — close',
+    welcome: 'This is the site terminal. Type help to see the commands.',
+    notFound: 'command not found: {cmd}',
+    didYouMean: 'Did you mean {cmd}?',
+    help: [
+      { cmd: 'about', desc: 'a short intro' },
+      { cmd: 'skills', desc: 'stack and tools' },
+      { cmd: 'work', desc: 'main project and a jump to it' },
+      { cmd: 'contact', desc: 'phone, email, socials' },
+      { cmd: 'goto <section>', desc: 'jump to a page section' },
+      { cmd: 'copy phone | email', desc: 'copy my number or email' },
+      { cmd: 'lang ru | en', desc: 'switch the site language' },
+      { cmd: 'mercury shake | splash | stats', desc: 'play with the metal' },
+      { cmd: 'sound on | off', desc: 'interface sounds' },
+      { cmd: 'ls, date, whoami, clear, exit', desc: '' },
+    ],
+    about: [
+      'Furuzonfar Zikriyoev, frontend developer and UI designer.',
+      'Graduated from KNRTU (Kazan) in Information Systems and Technology.',
+      'I write Vue and TypeScript and have been doing design for over five years.',
+      'Based in Tashkent, open to opportunities.',
+    ],
+    work: 'Mercury DotAi — Dota 2 player analytics with AI game breakdowns. Demo soon.',
+    goto: {
+      usage: 'goto <section>. Sections: {list}',
+      done: 'Going to: {name}',
+    },
+    lang: {
+      usage: 'lang ru | en',
+      done: 'Language: English',
+    },
+    copy: {
+      usage: 'copy phone | email',
+      done: 'Copied: {value}',
+      fail: 'Could not copy. The browser denied clipboard access.',
+    },
+    mercury: {
+      usage: 'mercury shake | splash | stats',
+      off: 'Metal is unavailable: this browser does not support WebGL2.',
+      shake: 'Shaken.',
+      splash: 'Splash from the centre of the screen.',
+      stats: 'FPS {fps} · drops {drops} · quality {quality} · pixel ratio {pr}',
+    },
+    sound: {
+      usage: 'sound on | off',
+      on: 'Sound on.',
+      off: 'Sound off.',
+      unsupported: 'Sound is available on desktop only.',
+    },
+    whoami: 'guest',
+    date: 'It is {time} in Tashkent',
+    sudoHire: ['No password needed.', 'Scrolling to contacts.'],
+    sudoDenied: 'guest is not in the sudoers file. This incident will be reported.',
+    rm: 'Not today.',
+    hello: 'Hi. Type help.',
+  },
+  console: [
+    'Hi. Since you opened the console, here is how the site works.',
+    'Vue 3 + TypeScript + Vite. The liquid metal is my own WebGL2 shader, no three.js: metaballs, a text field and drop physics.',
+    'Press ~ on the page to open the terminal. There are other secrets too.',
+    'GitHub: https://github.com/Furik-Zikriyoev',
+  ],
 
   contact: {
     email: 'Email',
