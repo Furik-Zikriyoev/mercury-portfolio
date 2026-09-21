@@ -32,6 +32,10 @@ uniform float uTextAmount;
 uniform vec4 uFrameRect;
 uniform vec3 uFrameParams;
 
+// аквариум песочницы: капли с флагом w = 1 видны только внутри него
+uniform vec4 uArenaRect;
+uniform float uArenaRadius;
+
 uniform float uBevel;
 uniform vec2 uLight;
 uniform vec3 uAccent;
@@ -79,6 +83,8 @@ void main() {
 
   float f = 0.0;
   vec2 g = vec2(0.0);
+  float fa = 0.0;
+  vec2 ga = vec2(0.0);
 
   for (int i = 0; i < MAX_BLOBS; i++) {
     if (i >= uBlobCount) break;
@@ -86,8 +92,24 @@ void main() {
     vec2 d = p - b.xy;
     float r2 = b.z * b.z;
     float q = dot(d, d) + 0.25 * r2;
-    f += r2 / q;
-    g += (-2.0 * r2 / (q * q)) * d;
+    float v = r2 / q;
+    vec2 gv = (-2.0 * r2 / (q * q)) * d;
+    if (b.w > 0.5) {
+      fa += v;
+      ga += gv;
+    } else {
+      f += v;
+      g += gv;
+    }
+  }
+
+  // металл аквариума обрезается по стеклу: прижимается к стенкам, как жидкость
+  if (fa > 0.0 && uArenaRect.z > 0.0) {
+    vec2 c = uArenaRect.xy + uArenaRect.zw * 0.5;
+    float wall = sdRoundBox(p - c, uArenaRect.zw * 0.5 - 1.5, uArenaRadius);
+    float inside = clamp(0.5 - wall, 0.0, 1.0);
+    f += fa * inside;
+    g += ga * inside;
   }
 
   if (uTextAmount > 0.001) {
@@ -120,6 +142,8 @@ void main() {
 
   float s = max(1.0 - 1.0 / f, 1e-4);
   vec2 slope = g / (f * f) / (2.0 * sqrt(s)) * uBevel;
+  // в толще металла (много слившихся капель) поверхность выравнивается, без «ямок»
+  slope /= 1.0 + max(f - 1.6, 0.0) * 0.9;
   vec3 n = normalize(vec3(-slope.x, slope.y, 1.0));
 
   vec3 r = reflect(vec3(0.0, 0.0, -1.0), n);

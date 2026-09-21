@@ -8,7 +8,7 @@ export type Quality = 'high' | 'medium' | 'low'
 /** Точка во вьюпорте (CSS px) или элемент — тогда берётся его центр на каждом кадре */
 export type Target = HTMLElement | { x: number; y: number }
 
-type Role = 'idle' | 'text' | 'frame' | 'pointer' | 'free'
+type Role = 'idle' | 'text' | 'frame' | 'pointer' | 'free' | 'arena'
 
 interface Drop {
   x: number
@@ -19,7 +19,7 @@ interface Drop {
   r: number
   tr: number
   role: Role
-  /** индекс точки для ролей text / frame */
+  /** индекс точки для ролей text / frame. У роли arena координаты x/y — внутри арены */
   slot: number
   tx: number
   ty: number
@@ -29,6 +29,10 @@ interface Drop {
   /** секунд до возврата в idle (для брызг) */
   life: number
   seed: number
+  /** капля арены ещё падает в неё сверху — стенки и потолок пока не действуют */
+  entering?: boolean
+  /** секунд, пока капля не может слиться с другими (после деления) */
+  cooldown?: number
 }
 
 export interface MercuryOptions {
@@ -56,6 +60,8 @@ const UNIFORMS = [
   'uTextAmount',
   'uFrameRect',
   'uFrameParams',
+  'uArenaRect',
+  'uArenaRadius',
   'uBevel',
   'uLight',
   'uAccent',
@@ -68,6 +74,8 @@ const QUALITY: Record<Quality, { maxPR: number; maxDrops: number; textScale: num
 }
 
 const BEVEL = 60
+/** максимум капель в песочнице, чтобы хватило на каплю-курсор и основную */
+const ARENA_MAX = 30
 
 function detectQuality(): Quality {
   const coarse = window.matchMedia('(pointer: coarse)').matches
@@ -183,6 +191,15 @@ export class Mercury {
     strength: 0.35,
   }
 
+  /** Арена песочницы: капли живут в координатах элемента и едут вместе с ним при скролле */
+  private arena = {
+    el: null as HTMLElement | null,
+    rect: null as DOMRect | null,
+    radius: 0,
+    attract: null as { x: number; y: number } | null,
+    gathering: false,
+  }
+
   private resizeTimer = 0
 
   private constructor(canvas: HTMLCanvasElement, options: MercuryOptions) {
@@ -295,6 +312,13 @@ export class Mercury {
     this.homeSize = opts.size ?? this.homeSize
     this.homeCount = opts.count ?? this.homeCount
     this.homeTight = opts.tight ?? false
+    // капли, пришедшие из прошлого дома, принимают размер нового
+    this.drops
+      .filter((d) => d.role === 'idle' && d.tr > 0)
+      .forEach((d, i) => {
+        if (i === 0) d.tr = this.homeSize
+        else if (i < this.homeCount) d.tr = this.homeSize * rand(0.32, 0.45)
+      })
     this.fillHome()
   }
 
@@ -531,9 +555,156 @@ export class Mercury {
 
   shake(force = 900): void {
     for (const d of this.drops) {
-      if (d.role === 'pointer') continue
+      if (d.role === 'pointer' || d.role === 'arena') continue
       d.vx += rand(-force, force)
       d.vy += rand(-force, force * 0.4) - force * 0.3
+    }
+  }
+
+  // ---------------------------------------------------------------- песочница
+
+  /** Элемент-арена песочницы */
+  setArena(el: HTMLElement | null): void {
+    if (!el) this.releaseArena()
+    this.arena.el = el
+    this.arena.radius = el ? parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0 : 0
+  }
+
+  /** Свободные капли дома падают в арену сверху */
+  /** Основная капля дома падает в арену сверху, мелкие растворяются в ней */
+  pourIntoArena(): void {
+    const el = this.arena.el
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const idle = this.drops.filter((d) => d.role === 'idle' && d.tr > 0)
+    const main = idle.reduce<Drop | null>((best, d) => (!best || d.tr > best.tr ? d : best), null)
+    if (!main) return
+    for (const d of idle) if (d !== main) d.tr = 0
+    main.role = 'arena'
+    main.entering = true
+    main.x -= rect.left
+    main.y -= rect.top
+    main.vy = Math.max(main.vy, 0)
+  }
+
+  /** Из арены вытекает одна капля размером с дом — она поплывёт к следующей секции */
+  leakFromArena(): void {
+    const rect = this.arena.rect ?? this.arena.el?.getBoundingClientRect()
+    if (!rect) return
+    this.arena.attract = null
+    this.arena.gathering = false
+    const source = this.drops
+      .filter((d) => d.role === 'arena' && d.tr > 0)
+      .reduce<Drop | null>((best, d) => (!best || d.tr > best.tr ? d : best), null)
+    if (!source) return
+    const size = Math.min(this.homeSize * 0.9, source.tr * 0.85)
+    const drop = this.addDrop(rect.left + source.x, rect.top + source.y - source.r * 0.4, size * 0.7)
+    if (!drop) return
+    drop.tr = size
+    drop.vy = -500
+    source.tr = Math.sqrt(Math.max(source.tr * source.tr - size * size, (source.tr * 0.45) ** 2))
+  }
+
+  /** Металл выходит из арены и течёт к текущему дому */
+  releaseArena(): void {
+    const rect = this.arena.rect ?? this.arena.el?.getBoundingClientRect() ?? null
+    for (const d of this.drops) {
+      if (d.role !== 'arena') continue
+      d.role = 'idle'
+      d.entering = false
+      if (rect) {
+        d.x += rect.left
+        d.y += rect.top
+      }
+    }
+    this.arena.attract = null
+    this.arena.gathering = false
+    this.arena.el = null
+    this.arena.rect = null
+  }
+
+  /** Добавить капли в арену (падают сверху) */
+  spawnArena(count = 12): void {
+    const el = this.arena.el
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const scale = Math.min(1.2, Math.max(0.55, rect.width / 700))
+    const n = Math.min(count, ARENA_MAX - this.arenaDrops.length)
+    for (let i = 0; i < n; i++) {
+      const drop = this.addDrop(rand(0.2, 0.8) * rect.width, rand(0.05, 0.4) * rect.height, 0)
+      if (!drop) break
+      drop.role = 'arena'
+      drop.tr = rand(14, 26) * scale
+      drop.vx = rand(-250, 250)
+    }
+  }
+
+  private get arenaDrops(): Drop[] {
+    return this.drops.filter((d) => d.role === 'arena' && d.tr > 0)
+  }
+
+  /** Сколько капель видно в арене: касающиеся друг друга считаются одной */
+  get arenaCount(): number {
+    const list = this.arenaDrops
+    const parent = list.map((_, i) => i)
+    const find = (i: number): number => {
+      while (parent[i] !== i) i = parent[i] = parent[parent[i]!]!
+      return i
+    }
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i]!
+        const b = list[j]!
+        if (Math.hypot(a.x - b.x, a.y - b.y) < (a.r + b.r) * 0.95) parent[find(i)] = find(j)
+      }
+    }
+    return new Set(list.map((_, i) => find(i))).size
+  }
+
+  /** Капли арены тянутся к точке (координаты вьюпорта) */
+  attract(x: number, y: number): void {
+    this.arena.attract = { x, y }
+  }
+
+  releaseAttract(): void {
+    this.arena.attract = null
+  }
+
+  /** Собрать все капли арены в одну */
+  async gatherArena(): Promise<void> {
+    this.arena.gathering = true
+    await this.tweens.to('arena-gather', 0, 1, 0, () => {}, { delay: 1.2 })
+    this.arena.gathering = false
+  }
+
+  /** Разбить крупные капли на мелкие */
+  splitArena(): void {
+    let budget = ARENA_MAX - this.arenaDrops.length
+    const parents = this.drops.filter((d) => d.role === 'arena' && d.tr > 12)
+    for (const parent of parents) {
+      const pieces = parent.tr > 34 ? 4 : parent.tr > 22 ? 3 : 2
+      const size = parent.tr / Math.sqrt(pieces)
+      for (let i = 1; i < pieces; i++) {
+        if (budget-- <= 0) break
+        const drop = this.addDrop(parent.x, parent.y, size * 0.6)
+        if (!drop) return
+        drop.role = 'arena'
+        drop.tr = size
+        drop.vx = rand(-700, 700)
+        drop.vy = -rand(300, 900)
+        drop.cooldown = 0.6
+      }
+      parent.tr = size
+      parent.vy -= 400
+      parent.cooldown = 0.6
+    }
+  }
+
+  shakeArena(force = 1100): void {
+    for (const d of this.drops) {
+      if (d.role !== 'arena') continue
+      d.vx += rand(-force, force)
+      d.vy -= rand(force * 0.4, force * 1.1)
     }
   }
 
@@ -543,8 +714,14 @@ export class Mercury {
     return QUALITY[this.quality].maxDrops
   }
 
+  /** Точка дома, прижатая к экрану: при скролле капля не уходит за край, а едет вдоль него */
   private homePoint(): { x: number; y: number } {
-    return this.home ? resolveTarget(this.home) : { x: this.width / 2, y: this.height / 2 }
+    const p = this.home ? resolveTarget(this.home) : { x: this.width / 2, y: this.height / 2 }
+    const m = Math.min(this.homeSize * 1.6, this.height / 4)
+    return {
+      x: Math.min(this.width - m, Math.max(m, p.x)),
+      y: Math.min(this.height - m, Math.max(m * 0.8, p.y)),
+    }
   }
 
   private addDrop(x: number, y: number, r: number): Drop | null {
@@ -635,10 +812,12 @@ export class Mercury {
     this.time += dt
 
     this.governor(dt)
+    this.arena.rect = this.arena.el?.getBoundingClientRect() ?? null
     this.tweens.update(dt)
     this.updateTargets()
     this.integrate(dt / 2)
     this.integrate(dt / 2)
+    this.mergeArena(dt)
     this.render()
   }
 
@@ -664,15 +843,17 @@ export class Mercury {
 
     idle.forEach((d, i) => {
       if (i >= this.homeCount) {
-        // лишние капли сливаются с основной
+        // лишние капли долетают до основной и сливаются с ней
         d.tx = home.x
         d.ty = home.y
-        d.tr = 0
+        if (Math.hypot(d.x - home.x, d.y - home.y) < this.homeSize * 1.2) d.tr = 0
         return
       }
       if (i === 0 || this.homeTight) {
-        d.tx = home.x + Math.sin(t * 0.7 + d.seed) * 6
-        d.ty = home.y + Math.cos(t * 0.6 + d.seed) * 6
+        // у маленькой капли покачивание меньше, чтобы она не выходила из своего места
+        const wobble = Math.min(6, this.homeSize * 0.1)
+        d.tx = home.x + Math.sin(t * 0.7 + d.seed) * wobble
+        d.ty = home.y + Math.cos(t * 0.6 + d.seed) * wobble
         return
       }
       const angle = t * 0.35 + (i / Math.max(1, this.homeCount - 1)) * Math.PI * 2 + Math.sin(t * 0.4 + i) * 0.3
@@ -716,10 +897,106 @@ export class Mercury {
     }
   }
 
+  private integrateArena(d: Drop, dt: number): void {
+    const a = this.arena.rect
+    if (!a) {
+      d.tr = 0
+      return
+    }
+    const { gravity, pointer } = this
+    let ax = gravity.x
+    let ay = gravity.y
+
+    const attract = this.arena.gathering
+      ? { x: a.width / 2, y: a.height / 2 }
+      : this.arena.attract
+        ? { x: this.arena.attract.x - a.left, y: this.arena.attract.y - a.top }
+        : null
+
+    if (attract) {
+      ax += (attract.x - d.x) * 45 - d.vx * 5
+      ay += (attract.y - d.y) * 45 - d.vy * 5
+    } else if (pointer.active) {
+      const dx = d.x - (pointer.x - a.left)
+      const dy = d.y - (pointer.y - a.top)
+      const dist2 = dx * dx + dy * dy
+      if (dist2 < 120 * 120 && dist2 > 1) {
+        const len = Math.sqrt(dist2)
+        const push = (1 - len / 120) * 5000
+        ax += (dx / len) * push
+        ay += (dy / len) * push
+      }
+    }
+
+    d.vx = (d.vx + ax * dt) * 0.998
+    d.vy = (d.vy + ay * dt) * 0.998
+    d.x += d.vx * dt
+    d.y += d.vy * dt
+
+    const r = d.r * 0.6
+    if (d.entering) {
+      // пока капля над ареной: тянем по горизонтали внутрь, стенки не трогаем
+      const inside = Math.min(a.width - r, Math.max(r, d.x))
+      d.vx += (inside - d.x) * 6 * dt
+      if (d.y > r && d.x >= r && d.x <= a.width - r) d.entering = false
+      return
+    }
+    if (d.x < r) {
+      d.x = r
+      d.vx = Math.abs(d.vx) * 0.35
+    } else if (d.x > a.width - r) {
+      d.x = a.width - r
+      d.vx = -Math.abs(d.vx) * 0.35
+    }
+    if (d.y < r) {
+      d.y = r
+      d.vy = Math.abs(d.vy) * 0.35
+    } else if (d.y > a.height - r) {
+      d.y = a.height - r
+      d.vy = -Math.abs(d.vy) * 0.3
+      d.vx *= 0.97
+    }
+  }
+
+  /**
+   * Сильно перекрывшиеся капли арены сливаются в одну (площадь сохраняется),
+   * поэтому счётчик показывает реальное число капель. Только что разделённые
+   * капли (cooldown > 0) не сливаются, чтобы успели разлететься.
+   */
+  private mergeArena(dt: number): void {
+    const list = this.drops.filter((d) => d.role === 'arena' && d.tr > 0 && !d.entering)
+    const maxR = 80
+    for (const d of list) if (d.cooldown) d.cooldown = Math.max(0, d.cooldown - dt)
+    for (let i = 0; i < list.length; i++) {
+      const a = list[i]!
+      if (a.tr <= 0 || a.cooldown) continue
+      for (let j = i + 1; j < list.length; j++) {
+        const b = list[j]!
+        if (b.tr <= 0 || b.cooldown) continue
+        const dist = Math.hypot(a.x - b.x, a.y - b.y)
+        if (dist > (a.r + b.r) * 0.4) continue
+        const tr = Math.sqrt(a.tr * a.tr + b.tr * b.tr)
+        if (tr > maxR) continue
+        const wa = a.tr * a.tr
+        const wb = b.tr * b.tr
+        a.x = (a.x * wa + b.x * wb) / (wa + wb)
+        a.y = (a.y * wa + b.y * wb) / (wa + wb)
+        a.vx = (a.vx * wa + b.vx * wb) / (wa + wb)
+        a.vy = (a.vy * wa + b.vy * wb) / (wa + wb)
+        a.tr = tr
+        a.r = Math.max(a.r, tr * 0.9)
+        b.tr = 0
+        b.r = 0
+      }
+    }
+  }
+
   private integrate(dt: number): void {
     const { width, height, gravity, pointer } = this
     for (const d of this.drops) {
-      if (d.role === 'free') {
+      if (d.role === 'arena') {
+        this.integrateArena(d, dt)
+      } else if (d.role === 'free') {
         d.vx += gravity.x * dt
         d.vy += gravity.y * dt
         if (pointer.active) {
@@ -774,14 +1051,23 @@ export class Mercury {
     gl.clear(gl.COLOR_BUFFER_BIT)
 
     let count = 0
+    const arena = this.arena.rect
     for (const d of this.drops) {
       if (d.r < 0.5 || count >= MAX_BLOBS) continue
-      if (d.x < -d.r * 3 || d.y < -d.r * 3 || d.x > this.width + d.r * 3 || d.y > this.height + d.r * 3) {
+      let x = d.x
+      let y = d.y
+      if (d.role === 'arena') {
+        if (!arena) continue
+        x += arena.left
+        y += arena.top
+      }
+      if (x < -d.r * 3 || y < -d.r * 3 || x > this.width + d.r * 3 || y > this.height + d.r * 3) {
         continue
       }
-      this.blobData[count * 4] = d.x
-      this.blobData[count * 4 + 1] = d.y
+      this.blobData[count * 4] = x
+      this.blobData[count * 4 + 1] = y
       this.blobData[count * 4 + 2] = d.r
+      this.blobData[count * 4 + 3] = d.role === 'arena' && !d.entering ? 1 : 0
       count++
     }
 
@@ -808,6 +1094,13 @@ export class Mercury {
       gl.uniform1f(this.u.uTextAmount, this.text.amount)
     } else {
       gl.uniform1f(this.u.uTextAmount, 0)
+    }
+
+    if (arena) {
+      gl.uniform4f(this.u.uArenaRect, arena.left, arena.top, arena.width, arena.height)
+      gl.uniform1f(this.u.uArenaRadius, this.arena.radius)
+    } else {
+      gl.uniform4f(this.u.uArenaRect, 0, 0, 0, 0)
     }
 
     if (frameActive && this.frame.el) {

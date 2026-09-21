@@ -60,7 +60,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', placeDrop))
 
 <template>
   <section id="hero" class="hero">
-    <div ref="home" class="hero__home" aria-hidden="true" />
+    <div ref="home" class="hero__home" data-drop-home :data-drop-size="dropSize()" aria-hidden="true" />
 
     <div class="hero__content container">
       <p class="hero__status mono" data-reveal style="--i: 0">

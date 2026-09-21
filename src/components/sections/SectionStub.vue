@@ -17,11 +17,13 @@ const surface = computed(() => SECTIONS[index.value]?.surface ?? 'dark')
       <p class="section-index">{{ String(index).padStart(2, '0') }}</p>
       <h2 class="stub__title">{{ t.nav.sections[id] }}</h2>
     </div>
+    <div class="stub__drop" data-drop-home data-drop-size="46" data-drop-count="4" aria-hidden="true" />
   </section>
 </template>
 
 <style scoped>
 .stub {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 100svh;
@@ -31,5 +33,15 @@ const surface = computed(() => SECTIONS[index.value]?.surface ?? 'dark')
 .stub__title {
   margin-top: 1rem;
   font-size: var(--fs-3xl);
+}
+</style>
+
+<style scoped>
+.stub__drop {
+  position: absolute;
+  top: 50%;
+  right: 14vw;
+  width: 1px;
+  height: 1px;
 }
 </style>
