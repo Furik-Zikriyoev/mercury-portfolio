@@ -13,6 +13,9 @@ const socials: SocialLink[] = [
 
 export const profile = {
   email: 'zff2304@mail.ru',
+  /** для ссылки tel: и копирования */
+  phone: '+998507834299',
+  phoneDisplay: '+998 50 783 42 99',
   timeZone: 'Asia/Tashkent',
   /** например '/resume.pdf' из папки public */
   resumeUrl: '',

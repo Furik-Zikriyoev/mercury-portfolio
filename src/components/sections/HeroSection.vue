@@ -84,7 +84,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', placeDrop))
     </div>
 
     <div class="hero__meta container mono" data-reveal style="--i: 4">
-      <span>{{ t.hero.localTime }} · {{ time }}</span>
+      <span>{{ t.hero.localTime }} · <span class="hero__time">{{ time }}</span></span>
       <span class="hero__scroll">
         {{ t.hero.scroll }}
         <i aria-hidden="true" />
@@ -174,6 +174,11 @@ onBeforeUnmount(() => window.removeEventListener('resize', placeDrop))
   justify-content: space-between;
   padding-block: 1.5rem;
   color: var(--text-muted);
+}
+
+.hero__time {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
 }
 
 .hero__scroll {

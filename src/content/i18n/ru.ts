@@ -11,10 +11,9 @@ const ru = {
   },
   nav: {
     menu: 'Меню',
-    close: 'Esc — закрыть',
     scrolled: 'Прочитано',
     timezone: 'Ташкент · UTC+5',
-    copy: 'Скопировать почту',
+    copy: 'Скопировать номер',
     copied: 'Скопировано',
     sections: {
       hero: 'Главная',
@@ -24,7 +23,7 @@ const ru = {
       experience: 'Опыт',
       specs: 'Навыки',
       work: 'Работы',
-      contact: 'Контакт',
+      contact: 'Контакты',
     },
   },
   intro: {

@@ -12,10 +12,9 @@ const en = {
   },
   nav: {
     menu: 'Menu',
-    close: 'Esc to close',
     scrolled: 'Read',
     timezone: 'Tashkent · UTC+5',
-    copy: 'Copy email',
+    copy: 'Copy number',
     copied: 'Copied',
     sections: {
       hero: 'Home',
@@ -25,7 +24,7 @@ const en = {
       experience: 'Experience',
       specs: 'Skills',
       work: 'Work',
-      contact: 'Contact',
+      contact: 'Contacts',
     },
   },
   intro: {

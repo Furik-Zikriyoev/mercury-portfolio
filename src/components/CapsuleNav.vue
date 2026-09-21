@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import LangSwitch from '@/components/LangSwitch.vue'
 import { useI18n } from '@/content/i18n'
 import { profile } from '@/content/profile'
@@ -36,22 +36,29 @@ function go(id: SectionId) {
   scrollToTarget(`#${id}`)
 }
 
-async function copyEmail() {
+async function copyPhone() {
   try {
-    await navigator.clipboard.writeText(profile.email)
+    await navigator.clipboard.writeText(profile.phone)
     copied.value = true
     window.clearTimeout(copiedTimer)
     copiedTimer = window.setTimeout(() => (copied.value = false), 1800)
   } catch {
-    window.location.href = `mailto:${profile.email}`
+    window.location.href = `tel:${profile.phone}`
   }
 }
 
 function onKey(e: KeyboardEvent) {
-  if (e.key === 'Escape') hide(0)
+  if (e.key === 'Escape' && open.value) hide(0)
 }
 
+// пока меню открыто, холст с металлом уходит под затемнение и не перекрывает панель
+watch(open, (value) => document.documentElement.classList.toggle('menu-open', value))
+
+onMounted(() => window.addEventListener('keydown', onKey))
+
 onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey)
+  document.documentElement.classList.remove('menu-open')
   window.clearTimeout(closeTimer)
   window.clearTimeout(copiedTimer)
 })
@@ -69,7 +76,6 @@ onBeforeUnmount(() => {
     style="--i: 5"
     @mouseenter="show"
     @mouseleave="hide()"
-    @keydown="onKey"
   >
     <button
       type="button"
@@ -89,7 +95,6 @@ onBeforeUnmount(() => {
           <span :key="label">{{ label }}</span>
         </Transition>
       </span>
-      <span class="capsule__hint mono">{{ open ? t.nav.close : t.nav.menu }}</span>
     </button>
 
     <div id="capsule-panel" class="capsule__panel">
@@ -118,12 +123,15 @@ onBeforeUnmount(() => {
             <p class="card__time">{{ time }}</p>
             <p class="card__tz mono">{{ t.nav.timezone }}</p>
 
-            <button type="button" class="card__email" @click="copyEmail">
-              <span class="card__email-address">{{ profile.email }}</span>
-              <span class="card__email-action mono">{{ copied ? t.nav.copied : t.nav.copy }}</span>
+            <button type="button" class="card__phone" @click="copyPhone">
+              <span class="card__phone-number">{{ profile.phoneDisplay }}</span>
+              <span class="card__phone-action mono">{{ copied ? t.nav.copied : t.nav.copy }}</span>
             </button>
 
             <ul class="card__socials">
+              <li>
+                <a :href="`mailto:${profile.email}`">{{ t.contact.email }} ↗</a>
+              </li>
               <li v-for="s in profile.socials" :key="s.id">
                 <a :href="s.href" target="_blank" rel="noopener noreferrer">{{ s.label }} ↗</a>
               </li>
@@ -191,10 +199,11 @@ onBeforeUnmount(() => {
 .capsule__bar {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.7rem;
   width: 100%;
   height: 46px;
-  padding: 0 1rem 0 0.55rem;
+  padding: 0 0.55rem;
 }
 
 .capsule__orb {
@@ -234,9 +243,7 @@ onBeforeUnmount(() => {
 }
 
 .capsule__label {
-  flex: 1;
   overflow: hidden;
-  text-align: left;
   font-weight: 600;
   font-size: var(--fs-sm);
   white-space: nowrap;
@@ -244,11 +251,6 @@ onBeforeUnmount(() => {
 
 .capsule__label > span {
   display: inline-block;
-}
-
-.capsule__hint {
-  color: rgb(255 255 255 / 0.45);
-  white-space: nowrap;
 }
 
 /* ---------- раскрытие ---------- */
@@ -422,7 +424,7 @@ onBeforeUnmount(() => {
   color: rgb(255 255 255 / 0.4);
 }
 
-.card__email {
+.card__phone {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -435,16 +437,18 @@ onBeforeUnmount(() => {
   transition: background-color 0.3s;
 }
 
-.card__email:hover {
+.card__phone:hover {
   background: rgb(255 255 255 / 0.09);
 }
 
-.card__email-address {
+.card__phone-number {
   font-weight: 600;
-  font-size: var(--fs-sm);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
-.card__email-action {
+.card__phone-action {
   color: var(--accent);
 }
 
@@ -500,7 +504,7 @@ onBeforeUnmount(() => {
     font-size: 1.6rem;
   }
 
-  .card__email {
+  .card__phone {
     margin-top: 1rem;
   }
 }

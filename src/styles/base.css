@@ -224,3 +224,8 @@ section[data-surface='light'] {
     font-size: 1.0625rem;
   }
 }
+
+/* открытое меню: металл под затемнением, чтобы не перекрывал панель */
+html.menu-open .mercury {
+  z-index: 48;
+}
