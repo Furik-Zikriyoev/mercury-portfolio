@@ -5,34 +5,52 @@ import { useMercury } from '@/composables/useMercury'
 /**
  * Текст, который рисуется жидким металлом.
  * В DOM он остаётся (для доступности и SEO), но становится прозрачным.
- * Без WebGL показывается как обычный текст.
+ * Движок держит один такой текст за раз: когда металл забирает другой MercuryText,
+ * этот показывается обычным хромовым текстом, пока снова не вызовут form().
  */
 const props = withDefaults(defineProps<{ text: string; tag?: string; auto?: boolean }>(), {
   tag: 'span',
   auto: true,
 })
 
+const id = Symbol('mercury-text')
 const el = ref<HTMLElement | null>(null)
 const liquid = ref(false)
-const { engine } = useMercury()
+const { engine, textOwner } = useMercury()
 let formed = false
 
-async function form(opts: { from?: 'home' | 'scatter'; duration?: number } = {}): Promise<void> {
+async function form(
+  opts: { from?: 'home' | 'scatter'; duration?: number } = {},
+  force = false,
+): Promise<void> {
   const m = engine.value
   if (!m || !el.value) return
-  if (formed) await m.releaseText('collect')
+  if (formed && textOwner.value === id && !force) return
+  const busy = m.hasText
+  textOwner.value = id
+  formed = true
+  if (busy) await m.releaseText('collect')
   await nextTick()
   liquid.value = true
-  formed = true
   await m.formText(el.value, opts)
 }
 
 async function release(mode: 'scatter' | 'collect' = 'scatter'): Promise<void> {
   const m = engine.value
-  if (!m || !formed) return
+  if (!m || !formed || textOwner.value !== id) return
   formed = false
+  textOwner.value = null
   await m.releaseText(mode)
+  liquid.value = false
 }
+
+// металл ушёл к другому тексту — показываем обычный текст
+watch(textOwner, (owner) => {
+  if (owner !== id && formed) {
+    formed = false
+    liquid.value = false
+  }
+})
 
 onMounted(() => {
   watch(
@@ -48,12 +66,15 @@ onMounted(() => {
 watch(
   () => props.text,
   () => {
-    if (formed) void form()
+    if (formed) void form({}, true)
   },
 )
 
 onBeforeUnmount(() => {
-  if (formed) void engine.value?.releaseText('collect')
+  if (formed && textOwner.value === id) {
+    textOwner.value = null
+    void engine.value?.releaseText('collect')
+  }
 })
 
 defineExpose({ form, release })

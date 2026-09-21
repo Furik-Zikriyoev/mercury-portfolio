@@ -6,6 +6,7 @@ import { profile } from '@/content/profile'
 import { useClock } from '@/composables/useClock'
 import { finishIntro, introSeen, useIntro } from '@/composables/useIntro'
 import { useMercury } from '@/composables/useMercury'
+import { onSection } from '@/composables/useSections'
 import { scrollToTarget } from '@/composables/useSmoothScroll'
 import { vMagnetic } from '@/directives/magnetic'
 
@@ -17,6 +18,7 @@ const { running } = useIntro()
 const home = ref<HTMLElement | null>(null)
 const name = ref<InstanceType<typeof MercuryText> | null>(null)
 let started = false
+let unregister: (() => void) | null = null
 
 function dropSize() {
   return Math.min(90, Math.max(44, window.innerWidth * 0.055))
@@ -53,9 +55,18 @@ onMounted(() => {
     { immediate: true },
   )
   window.addEventListener('resize', placeDrop)
+  // вернулись на первый экран — если металл забрал другой заголовок, имя собирается снова
+  unregister = onSection('hero', {
+    enter: () => {
+      if (started && !running.value) void name.value?.form()
+    },
+  })
 })
 
-onBeforeUnmount(() => window.removeEventListener('resize', placeDrop))
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', placeDrop)
+  unregister?.()
+})
 </script>
 
 <template>

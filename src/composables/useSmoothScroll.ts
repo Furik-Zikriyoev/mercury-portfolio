@@ -3,6 +3,10 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
+// ScrollTrigger при регистрации запоминает history.scrollRestoration ('auto', потому что импорт
+// срабатывает раньше строки в main.ts) и возвращает его при каждом refresh.
+// Без этого браузер после перезагрузки восстанавливает позицию скролла.
+ScrollTrigger.clearScrollMemory('manual')
 
 let lenis: Lenis | null = null
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -37,4 +41,13 @@ export function lockScroll(locked: boolean): void {
   document.documentElement.classList.toggle('is-locked', locked)
   if (locked) lenis?.stop()
   else lenis?.start()
+}
+
+/** Прокрутка к координате страницы (нужна секциям со sticky-сценой) */
+export function scrollToY(y: number): void {
+  if (lenis) {
+    lenis.scrollTo(y, { duration: 1 })
+    return
+  }
+  window.scrollTo({ top: y, behavior: reduced() ? 'auto' : 'smooth' })
 }

@@ -163,8 +163,35 @@ const en = {
       '25+ awards at the “Pokolenie” student union leadership school, top 10 of ~70 graduates',
     ],
   },
+  work: {
+    label: 'Thesis project · 2026',
+    title: 'Mercury DotAi',
+    lead: 'Personal analytics for Dota 2 players built on real OpenDota data, with AI breakdowns of every game. I designed and built the interface, the server, the database and the AI prompts.',
+    stats: [
+      { value: 6, label: 'app sections' },
+      { value: 4, label: 'radar charts in player comparison' },
+      { value: 2, label: 'OpenAI models: analysis and chat' },
+    ],
+    screens: ['Player dashboard', 'Match breakdown', 'Player comparison', 'AI chat'],
+    stackLabel: 'Stack',
+    demo: 'Demo soon',
+    more: 'More work will be added here later.',
+    screenAlt: 'Mercury DotAi screenshot:',
+  },
+
   contact: {
     email: 'Email',
+    title: 'Get in touch',
+    lead: 'I am looking for a frontend developer role. I live in Tashkent and reply within a day.',
+    phone: 'Phone',
+    copy: 'Copy',
+    copied: 'Copied',
+    resume: 'Resume, PDF',
+    footer: {
+      name: 'Furuzonfar Zikriyoev',
+      built: 'Site and liquid metal: Vue, TypeScript, WebGL2',
+      top: 'Back to top',
+    },
   },
 } satisfies Messages
 

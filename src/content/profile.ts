@@ -2,13 +2,31 @@
 export interface SocialLink {
   id: 'telegram' | 'github' | 'linkedin' | 'instagram' | 'hh'
   label: string
+  /** как показывать в контактах */
+  handle: string
   href: string
 }
 
 const socials: SocialLink[] = [
-  { id: 'telegram', label: 'Telegram', href: 'https://t.me/mercury23' },
-  { id: 'github', label: 'GitHub', href: 'https://github.com/Furik-Zikriyoev' },
-  { id: 'linkedin', label: 'LinkedIn', href: '' },
+  { id: 'telegram', label: 'Telegram', handle: '@mercury23', href: 'https://t.me/mercury23' },
+  {
+    id: 'github',
+    label: 'GitHub',
+    handle: 'Furik-Zikriyoev',
+    href: 'https://github.com/Furik-Zikriyoev',
+  },
+  {
+    id: 'linkedin',
+    label: 'LinkedIn',
+    handle: 'Furuzonfar Zikriyoev',
+    href: 'https://www.linkedin.com/in/furuzonfar-zikriyoev-22b248424/',
+  },
+  {
+    id: 'instagram',
+    label: 'Instagram',
+    handle: '@mercury.1.9',
+    href: 'https://www.instagram.com/mercury.1.9/',
+  },
 ]
 
 export const profile = {

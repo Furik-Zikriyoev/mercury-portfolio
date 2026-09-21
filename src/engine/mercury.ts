@@ -383,6 +383,11 @@ export class Mercury {
     this.fillHome()
   }
 
+  /** Есть ли сейчас металлический текст */
+  get hasText(): boolean {
+    return !!this.text.el
+  }
+
   /** Мгновенно завершить сборку текста (кнопка «Пропустить») */
   completeText(): void {
     if (!this.text.el) return
