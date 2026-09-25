@@ -43,6 +43,13 @@ export function lockScroll(locked: boolean): void {
   else lenis?.start()
 }
 
+/** Переход между страницами: в начало и пересчёт триггеров */
+export function resetScroll(): void {
+  lenis?.scrollTo(0, { immediate: true })
+  window.scrollTo(0, 0)
+  requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh()))
+}
+
 /** Прокрутка к координате страницы (нужна секциям со sticky-сценой) */
 export function scrollToY(y: number): void {
   if (lenis) {

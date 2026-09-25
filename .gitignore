@@ -6,3 +6,14 @@ dist
 !.vscode/extensions.json
 *.tsbuildinfo
 .vercel
+
+# ключи от API — только локально
+.env
+.env.local
+
+# результаты scripts/gen-image.mjs
+generated
+
+# локальные заметки для ассистента
+CLAUDE.md
+.claude/

@@ -20,6 +20,7 @@ const en = {
     terminal: 'Terminal',
     soundOn: 'Turn sound on',
     soundOff: 'Turn sound off',
+    works: 'All work',
     sections: {
       hero: 'Home',
       sandbox: 'Sandbox',
@@ -178,6 +179,7 @@ const en = {
     ],
     screens: ['Player dashboard', 'Match breakdown', 'Player comparison', 'AI chat'],
     stackLabel: 'Stack',
+    all: 'All work',
     demo: 'Demo soon',
     more: 'More work will be added here later.',
     screenAlt: 'Mercury DotAi screenshot:',
@@ -247,6 +249,22 @@ const en = {
     'Press ~ on the page to open the terminal. There are other secrets too.',
     'GitHub: https://github.com/Furik-Zikriyoev',
   ],
+
+  works: {
+    metaTitle: 'Work — Furuzonfar Zikriyoev',
+    title: 'Work',
+    lead: 'Projects I took to a working state. For each one: what it is, how it is built and what it runs on.',
+    back: 'Home',
+    openDemo: 'Open demo',
+    demoSoon: 'Demo soon',
+    sources: 'Source code',
+    stack: 'Stack',
+    outroLabel: 'Portfolio · 2026',
+    outroTitle: 'Powered by Furuzonfar',
+    outroSub: 'If something here fits what you need, get in touch. I will walk you through the code and the decisions.',
+    home: 'Back to the home page',
+    note: 'New work appears here as it is finished.',
+  },
 
   contact: {
     email: 'Email',

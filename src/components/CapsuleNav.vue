@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Terminal, Volume2, VolumeX } from 'lucide-vue-next'
 import LangSwitch from '@/components/LangSwitch.vue'
 import { useI18n } from '@/content/i18n'
@@ -13,6 +14,8 @@ import { play, useSound } from '@/composables/useSound'
 import { useTerminal } from '@/composables/useTerminal'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const { active, progress } = useSections()
 const { time } = useClock(profile.timeZone)
 
@@ -26,9 +29,20 @@ const copied = ref(false)
 let closeTimer = 0
 let copiedTimer = 0
 
-const label = computed(() => t.value.nav.sections[active.value])
-const ring = computed(() => 2 * Math.PI * 9 * (1 - progress.value))
-const percent = computed(() => Math.round(progress.value * 100))
+const onHome = computed(() => route.path === '/')
+/** на главной прогресс считает ScrollTrigger, на других страницах — свой обработчик */
+const pageProgress = ref(0)
+const read = computed(() => (onHome.value ? progress.value : pageProgress.value))
+
+const label = computed(() => (onHome.value ? t.value.nav.sections[active.value] : t.value.nav.works))
+const ring = computed(() => 2 * Math.PI * 9 * (1 - read.value))
+const percent = computed(() => Math.round(read.value * 100))
+
+function onScroll() {
+  if (onHome.value) return
+  const max = document.documentElement.scrollHeight - window.innerHeight
+  pageProgress.value = max > 0 ? Math.min(1, window.scrollY / max) : 0
+}
 
 function show() {
   window.clearTimeout(closeTimer)
@@ -58,8 +72,13 @@ function openTerminal() {
   terminal.toggle(true)
 }
 
-function go(id: SectionId) {
+async function go(id: SectionId) {
   hide(0)
+  // с другой страницы сначала возвращаемся на главную, потом прокручиваем
+  if (!onHome.value) {
+    await router.push('/')
+    await nextTick()
+  }
   scrollToTarget(`#${id}`)
 }
 
@@ -85,10 +104,15 @@ watch(open, (value) => {
   play(value ? 'open' : 'close')
 })
 
-onMounted(() => window.addEventListener('keydown', onKey))
+onMounted(() => {
+  window.addEventListener('keydown', onKey)
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+})
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
+  window.removeEventListener('scroll', onScroll)
   document.documentElement.classList.remove('menu-open')
   window.clearTimeout(closeTimer)
   window.clearTimeout(copiedTimer)
@@ -143,6 +167,13 @@ onBeforeUnmount(() => {
                 <span class="link__name">{{ t.nav.sections[s.id] }}</span>
                 <span class="link__arrow" aria-hidden="true">→</span>
               </a>
+            </li>
+            <li class="links__page" :style="{ '--d': SECTIONS.length }">
+              <RouterLink to="/works" class="link link--page" @click="hide(0)">
+                <span class="link__num mono">→</span>
+                <span class="link__name">{{ t.nav.works }}</span>
+                <span class="link__arrow" aria-hidden="true">↗</span>
+              </RouterLink>
             </li>
           </ul>
 
@@ -532,6 +563,10 @@ onBeforeUnmount(() => {
 
 .capsule__read {
   color: rgb(255 255 255 / 0.4);
+}
+
+.link--page .link__name {
+  color: var(--accent);
 }
 
 .tools {

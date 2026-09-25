@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { RouterLink } from 'vue-router'
 import {
   Activity,
+  ArrowRight,
   Braces,
   Clock,
   Database,
@@ -149,6 +151,10 @@ onBeforeUnmount(() => {
           </ul>
 
           <div class="work__actions">
+            <RouterLink class="btn" to="/works">
+              {{ t.work.all }}
+              <ArrowRight :size="17" :stroke-width="1.8" aria-hidden="true" />
+            </RouterLink>
             <span class="demo" aria-disabled="true">
               <Clock :size="16" :stroke-width="1.8" aria-hidden="true" />
               {{ t.work.demo }}
@@ -313,6 +319,10 @@ onBeforeUnmount(() => {
 
 /* ---------- демо ---------- */
 .work__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
   margin-top: 2rem;
 }
 
