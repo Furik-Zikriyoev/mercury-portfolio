@@ -180,7 +180,7 @@ const en = {
     screens: ['Player dashboard', 'Match breakdown', 'Player comparison', 'AI chat'],
     stackLabel: 'Stack',
     all: 'All work',
-    demo: 'Demo soon',
+    demo: 'Open demo',
     more: 'More work will be added here later.',
     screenAlt: 'Mercury DotAi screenshot:',
   },
@@ -209,7 +209,7 @@ const en = {
       'I write Vue and TypeScript and have been doing design for over five years.',
       'Based in Tashkent, open to opportunities.',
     ],
-    work: 'Mercury DotAi — Dota 2 player analytics with AI game breakdowns. Demo soon.',
+    work: 'Mercury DotAi — Dota 2 player analytics with AI game breakdowns. Demo without sign-up: mercury-dotai.vercel.app/?demo=1',
     goto: {
       usage: 'goto <section>. Sections: {list}',
       done: 'Going to: {name}',

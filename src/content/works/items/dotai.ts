@@ -17,29 +17,29 @@ const dotai: Work = {
     {
       title: { ru: 'Что внутри', en: 'What is inside' },
       text: {
-        ru: 'Шесть разделов: вход и регистрация, дашборд игрока, список матчей с разбором, сравнение двух игроков, справочник героев и чат с ИИ по своей статистике.',
-        en: 'Six sections: sign-in and sign-up, a player dashboard, a match list with breakdowns, a two-player comparison, a hero reference and an AI chat about your own stats.',
+        ru: 'Шесть разделов: профиль игрока с графиками, герои с винрейтом по каждому, список матчей с разбором, ИИ-анализ статистики, сравнение двух игроков и чат с ИИ-коучем.',
+        en: 'Six sections: a player profile with charts, heroes with a win rate for each, a match list with breakdowns, AI stats analysis, a two-player comparison and a chat with an AI coach.',
       },
     },
     {
       title: { ru: 'Данные', en: 'Data' },
       text: {
-        ru: 'Матчи и профили приходят из OpenDota по Steam ID. Сервер на Express приводит ответы к своему формату, считает показатели и сохраняет их в SQLite, чтобы не дёргать чужой API на каждый клик.',
-        en: 'Matches and profiles come from OpenDota by Steam ID. The Express server maps the responses to its own format, computes the metrics and stores them in SQLite so it does not hit the external API on every click.',
+        ru: 'Матчи и профили приходят из открытого API OpenDota по Steam ID. Браузер запрашивает их напрямую и кэширует на 30 минут, чтобы не дёргать API на каждый клик. Сервер на Express отвечает за аккаунты и запросы к ИИ.',
+        en: 'Matches and profiles come from the open OpenDota API by Steam ID. The browser requests them directly and caches them for 30 minutes so it does not hit the API on every click. The Express server handles accounts and AI requests.',
       },
     },
     {
       title: { ru: 'Разбор через ИИ', en: 'AI breakdown' },
       text: {
-        ru: 'Два сценария: разбор конкретного матча и свободный чат. Промпт собирается из реальных цифр игрока — фарм, урон, участие в боях, — поэтому ответ говорит о его игре, а не общими словами.',
-        en: 'Two flows: a breakdown of one match and a free-form chat. The prompt is built from the player’s real numbers — farm, damage, fight participation — so the answer is about their game, not generic advice.',
+        ru: 'Три вида разбора — общая статистика, пул героев и конкретный матч — и свободный чат. Промпт собирается на сервере из реальных цифр игрока: винрейт, KDA, GPM и XPM, урон, нетворс, — поэтому ответ говорит о его игре, а не общими словами.',
+        en: 'Three kinds of breakdown — overall stats, hero pool and a single match — plus a free-form chat. The prompt is built on the server from the player’s real numbers: win rate, KDA, GPM and XPM, damage, net worth — so the answer is about their game, not generic advice.',
       },
     },
     {
-      title: { ru: 'Аккаунты', en: 'Accounts' },
+      title: { ru: 'Аккаунты и демо', en: 'Accounts and demo' },
       text: {
-        ru: 'Регистрация с подтверждением почты, вход по токену, пароли хранятся хешами, есть восстановление пароля письмом.',
-        en: 'Sign-up with email confirmation, token-based login, hashed passwords and password recovery by email.',
+        ru: 'Регистрация по почте и Steam ID, вход по JWT, пароли хранятся хешами bcrypt, сброс пароля по одноразовой ссылке. Для гостей есть демо-вход без регистрации. Запросы к ИИ ограничены суточными лимитами на пользователя и на весь сервис.',
+        en: 'Sign-up with email and Steam ID, JWT login, passwords stored as bcrypt hashes, password reset via a one-time link. Guests can use a demo login without signing up. AI requests are capped by daily limits per user and for the whole service.',
       },
     },
   ],
@@ -51,12 +51,13 @@ const dotai: Work = {
   stack: [
     { name: 'JavaScript', icon: 'code' },
     { name: 'Node.js + Express', icon: 'server' },
-    { name: 'SQLite', icon: 'database' },
+    { name: 'SQLite · Turso', icon: 'database' },
     { name: 'JWT + bcrypt', icon: 'shield' },
     { name: 'OpenAI API', icon: 'ai' },
     { name: 'OpenDota API', icon: 'game' },
     { name: 'Chart.js', icon: 'chart' },
     { name: 'Nodemailer', icon: 'mail' },
+    { name: 'Vercel', icon: 'web' },
   ],
   shots: [
     { src: dashboard, caption: { ru: 'Дашборд игрока', en: 'Player dashboard' } },
@@ -64,8 +65,8 @@ const dotai: Work = {
     { src: compare, caption: { ru: 'Сравнение игроков', en: 'Player comparison' } },
     { src: chat, caption: { ru: 'Чат с ИИ', en: 'AI chat' } },
   ],
-  demo: '',
-  repo: '',
+  demo: 'https://mercury-dotai.vercel.app/?demo=1',
+  repo: 'https://github.com/Furik-Zikriyoev/mercury-dotai',
 }
 
 export default dotai

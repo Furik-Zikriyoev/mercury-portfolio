@@ -6,7 +6,7 @@ import {
   Activity,
   ArrowRight,
   Braces,
-  Clock,
+  PlayCircle,
   Database,
   Server,
   ShieldCheck,
@@ -19,6 +19,7 @@ import { useI18n } from '@/content/i18n'
 import { onSection } from '@/composables/useSections'
 import { scrollToY } from '@/composables/useSmoothScroll'
 import { vReveal } from '@/directives/reveal'
+import dotai from '@/content/works/items/dotai'
 import dashboard from '@/assets/works/dotai/dashboard.webp'
 import match from '@/assets/works/dotai/match.webp'
 import compare from '@/assets/works/dotai/compare.webp'
@@ -155,10 +156,10 @@ onBeforeUnmount(() => {
               {{ t.work.all }}
               <ArrowRight :size="17" :stroke-width="1.8" aria-hidden="true" />
             </RouterLink>
-            <span class="demo" aria-disabled="true">
-              <Clock :size="16" :stroke-width="1.8" aria-hidden="true" />
+            <a class="demo" :href="dotai.demo" target="_blank" rel="noopener">
+              <PlayCircle :size="16" :stroke-width="1.8" aria-hidden="true" />
               {{ t.work.demo }}
-            </span>
+            </a>
           </div>
 
           <div class="work__drop" data-drop-home data-drop-size="36" data-drop-count="3" aria-hidden="true" />
@@ -331,11 +332,16 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.55rem;
   padding: 0.8rem 1.3rem;
-  border: 1px dashed var(--line-strong);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius-pill);
   font-weight: 600;
-  color: var(--text-muted);
-  cursor: default;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.demo:hover {
+  border-color: var(--accent);
 }
 
 .demo svg {
