@@ -17,8 +17,8 @@ const tehpark: Work = {
     {
       title: { ru: 'Что внутри', en: 'What is inside' },
       text: {
-        ru: 'Обзор парка с готовностью в процентах, разбивкой по типам и списком машин, которым нужно ТО. Список техники с поиском, фильтрами, сортировкой и пагинацией. Карточка машины со сменой статуса и историей обслуживания. Форма создания и редактирования. Светлая и тёмная тема, на телефоне таблица превращается в карточки.',
-        en: 'A fleet overview with readiness in percent, a breakdown by type and a list of units due for service. An equipment list with search, filters, sorting and pagination. A unit card with status switching and service history. A create and edit form. Light and dark themes; on a phone the table turns into cards.',
+        ru: 'Обзор парка с готовностью в процентах, разбивкой по типам и списком машин, которым нужно ТО. Список техники с поиском, фильтрами, сортировкой и пагинацией. Карточка машины со сменой статуса и историей обслуживания. Форма создания и редактирования. Светлая и тёмная тема, интерфейс на русском и английском, на телефоне таблица превращается в карточки.',
+        en: 'A fleet overview with readiness in percent, a breakdown by type and a list of units due for service. An equipment list with search, filters, sorting and pagination. A unit card with status switching and service history. A create and edit form. Light and dark themes, Russian and English interface; on a phone the table turns into cards.',
       },
     },
     {

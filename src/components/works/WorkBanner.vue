@@ -83,7 +83,10 @@ onMounted(() => {
         window.clearInterval(timer)
       }
     },
-    { threshold: 0.4 },
+    // Баннер активен, когда доходит до середины экрана. Порог по доле высоты
+    // (threshold) не годится: на телефоне баннер выше экрана в 3 раза и
+    // никогда не виден на 40% — скриншоты так и не появлялись.
+    { threshold: 0, rootMargin: '-35% 0px -35% 0px' },
   )
   if (section.value) observer.observe(section.value)
 })

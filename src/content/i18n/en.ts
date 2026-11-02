@@ -181,7 +181,7 @@ const en = {
     stackLabel: 'Stack',
     all: 'All work',
     demo: 'Open demo',
-    more: 'More work, including Techpark, is on the All work page.',
+    more: 'The wedding site, Techpark and more are on the All work page.',
     screenAlt: 'Mercury DotAi screenshot:',
   },
 
