@@ -100,7 +100,8 @@ onBeforeUnmount(() => {
   transform: scale(0.6);
 }
 
-:global(html:not(.has-cursor)) .cursor {
+/* :global(x) .cursor во Vue компилируется в просто x — тогда на телефоне скрывалась вся страница */
+:global(html:not(.has-cursor) .cursor) {
   display: none;
 }
 </style>
