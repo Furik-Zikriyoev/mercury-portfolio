@@ -21,6 +21,7 @@ let started = false
 let unregister: (() => void) | null = null
 
 function dropSize() {
+  if (window.innerWidth < 700) return 30
   return Math.min(90, Math.max(44, window.innerWidth * 0.055))
 }
 
@@ -244,8 +245,8 @@ onBeforeUnmount(() => {
 
 @media (max-width: 700px) {
   .hero__home {
-    top: 16%;
-    right: 16%;
+    top: 20%;
+    right: 18%;
   }
 }
 </style>

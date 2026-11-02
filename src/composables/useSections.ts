@@ -61,8 +61,9 @@ function sync(): void {
 function moveDrop(id: SectionId): void {
   const anchor = document.getElementById(id)?.querySelector<HTMLElement>('[data-drop-home]')
   if (!anchor || !engine.value) return
+  const scale = window.innerWidth < 700 ? 0.6 : 1
   engine.value.setHome(anchor, {
-    size: Number(anchor.dataset.dropSize ?? 60),
+    size: Number(anchor.dataset.dropSize ?? 60) * scale,
     count: Number(anchor.dataset.dropCount ?? 6),
   })
 }

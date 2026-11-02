@@ -171,6 +171,8 @@ export class Mercury {
 
   private home: Target | null = null
   private homeSize = 80
+  /** Отступ сверху, куда капля не заезжает (на телефоне там капсула-меню) */
+  private safeTop = 0
   private homeCount = 6
   private homeTight = false
 
@@ -790,7 +792,7 @@ export class Mercury {
     const m = Math.min(this.homeSize * 1.6, this.height / 4)
     return {
       x: Math.min(this.width - m, Math.max(m, p.x)),
-      y: Math.min(this.height - m, Math.max(m * 0.8, p.y)),
+      y: Math.min(this.height - m, Math.max(m * 0.8 + this.safeTop, p.y)),
     }
   }
 
@@ -847,6 +849,7 @@ export class Mercury {
     const dpr = window.devicePixelRatio || 1
     this.width = this.canvas.clientWidth || window.innerWidth
     this.height = this.canvas.clientHeight || window.innerHeight
+    this.safeTop = this.width < 700 ? 72 : 0
     this.pr = Math.min(dpr, QUALITY[this.quality].maxPR) * this.prScale
     this.canvas.width = Math.round(this.width * this.pr)
     this.canvas.height = Math.round(this.height * this.pr)
