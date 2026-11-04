@@ -17,8 +17,8 @@ const wedding: Work = {
     {
       title: { ru: 'Сайт для гостей', en: 'Site for guests' },
       text: {
-        ru: 'Приглашение с анимированной монограммой, обратный отсчёт, история пары, программа дня, место с кнопками карт и дресс-код. Форма ответа со спутниками; ответ привязан к устройству, поэтому при повторном заходе гость видит «Вы записаны». Напоминание — файлом в календарь телефона за 7, 3 и 1 день или push-уведомлением. Номер стола гость видит только после того, как пара его отправит. Русский и узбекский языки.',
-        en: 'An invitation with an animated monogram, a countdown, the couple’s story, the day’s schedule, the venue with map buttons and a dress code. A reply form with companions; the reply is tied to the device, so a returning guest sees “You are registered”. Reminders come as a phone calendar file 7, 3 and 1 day before, or as push notifications. Guests see their table number only after the couple sends it. Russian and Uzbek.',
+        ru: 'Приглашение с анимированной монограммой, обратный отсчёт, история пары, программа дня, место с картой и кнопками Яндекс и Google Карт, дресс-код отдельно для женщин и мужчин. Форма ответа со спутниками; ответ привязан к устройству, поэтому при повторном заходе гость видит «Вы записаны». Напоминание — файлом в календарь телефона за 7, 3 и 1 день или push-уведомлением. Номер стола гость видит только после того, как пара его отправит. Русский и узбекский языки.',
+        en: 'An invitation with an animated monogram, a countdown, the couple’s story, the day’s schedule, the venue with a map and Yandex and Google Maps buttons, and a dress code for women and men. A reply form with companions; the reply is tied to the device, so a returning guest sees “You are registered”. Reminders come as a phone calendar file 7, 3 and 1 day before, or as push notifications. Guests see their table number only after the couple sends it. Russian and Uzbek.',
       },
     },
     {
@@ -31,8 +31,8 @@ const wedding: Work = {
     {
       title: { ru: 'Три стиля', en: 'Three styles' },
       text: {
-        ru: '«Классика» — белый, чёрный и золото; «Восток» — изумруд, золото и узбекский орнамент гирих с аркой; «Пастель» — пудровый, шалфей и ботанические ветки. У каждого стиля свои цвета, шрифты, монограмма и палитра дресс-кода. Стиль переключается мгновенно, без перезагрузки: всё построено на CSS-переменных. Для заказчика стиль подбирается под пару.',
-        en: '“Classic” — white, black and gold; “East” — emerald, gold and the Uzbek girih ornament with an arch; “Pastel” — powder, sage and botanical sprigs. Each style has its own colors, fonts, monogram and dress code palette. The style switches instantly, without a reload: it is all built on CSS variables. For a client, the style is chosen to fit the couple.',
+        ru: '«Классика» — белый, чёрный и золото; «Восток» — изумруд, золото и узбекский орнамент гирих с аркой; «Пастель» — пудровый, шалфей и ботанические ветки. У каждого стиля свои цвета, шрифты, монограмма, анимированный первый экран, таймер и палитра дресс-кода. Стиль переключается мгновенно, без перезагрузки: всё построено на CSS-переменных. Для заказчика стиль подбирается под пару.',
+        en: '“Classic” — white, black and gold; “East” — emerald, gold and the Uzbek girih ornament with an arch; “Pastel” — powder, sage and botanical sprigs. Each style has its own colors, fonts, monogram, animated first screen, countdown and dress code palette. The style switches instantly, without a reload: it is all built on CSS variables. For a client, the style is chosen to fit the couple.',
       },
     },
     {
